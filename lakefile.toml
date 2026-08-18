@@ -1,0 +1,14 @@
+name = "SmoothingCliff"
+version = "0.1.0"
+defaultTargets = ["SmoothingCliff"]
+
+[leanOptions]
+pp.unicode.fun = true
+relaxedAutoImplicit = false
+
+[[require]]
+name = "Econlib"
+path = "../../lean/Econlib"
+
+[[lean_lib]]
+name = "SmoothingCliff"

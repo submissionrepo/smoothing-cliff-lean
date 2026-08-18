@@ -1,0 +1,108 @@
+import SmoothingCliff.Frontier.TwoBidder
+import SmoothingCliff.Frontier.Squeeze
+import SmoothingCliff.Frontier.Impossibility
+import SmoothingCliff.Frontier.NoPointwiseOptimum
+import SmoothingCliff.Frontier.RankRuleB
+import SmoothingCliff.Frontier.Anonymity
+import SmoothingCliff.Frontier.Extraction
+import SmoothingCliff.Frontier.WaterFilling
+import SmoothingCliff.Frontier.BandDerivative
+import SmoothingCliff.Frontier.MeanField
+import SmoothingCliff.Frontier.PopulationProgram
+import SmoothingCliff.Frontier.RationedRamp
+import SmoothingCliff.Frontier.SlotLottery
+import SmoothingCliff.Frontier.RationedRampPayments
+import SmoothingCliff.Frontier.RationingVariance
+import SmoothingCliff.Frontier.GeneralRationingRate
+import SmoothingCliff.Frontier.PLMeanFieldCurve
+import SmoothingCliff.Frontier.InterimBridgeMeanField
+import SmoothingCliff.Frontier.HeterogeneousWeights
+import SmoothingCliff.Mechanism.Intensity
+import SmoothingCliff.Mechanism.Axiomatization
+import SmoothingCliff.Mechanism.ScaleInvariance
+import SmoothingCliff.Mechanism.Payments
+import SmoothingCliff.Mechanism.OneSlotStability
+import SmoothingCliff.Mechanism.GeneralStability
+import SmoothingCliff.Mechanism.GeneralIntensity
+import SmoothingCliff.Mechanism.CertificateStructure
+import SmoothingCliff.Mechanism.StabilityBridge
+import SmoothingCliff.Mechanism.TieNull
+import SmoothingCliff.Mechanism.RankInterval
+import SmoothingCliff.Mechanism.RaceRankBridge
+import SmoothingCliff.Mechanism.ShockRankEvent
+import SmoothingCliff.Mechanism.RealizedPriorityBridge
+import SmoothingCliff.Mechanism.StabilityProduct
+import SmoothingCliff.Mechanism.CrossAgent
+import SmoothingCliff.Mechanism.Monotonicity
+import SmoothingCliff.Mechanism.LuceOptimality
+import SmoothingCliff.Mechanism.LuceOptimalityGeneralK
+import SmoothingCliff.Mechanism.Runtime
+import SmoothingCliff.Mechanism.RuntimeAsymptotics
+import SmoothingCliff.Mechanism.Revenue
+import SmoothingCliff.Mechanism.Sybil
+import SmoothingCliff.Mechanism.SybilStrictPriority
+import SmoothingCliff.Racing.Spread
+import SmoothingCliff.Racing.WelfareLoss
+import SmoothingCliff.Racing.GeneralWelfareLoss
+import SmoothingCliff.Racing.PLPermutationLaw
+import SmoothingCliff.Racing.PLLogPremium
+import SmoothingCliff.Racing.PLLogPremiumProfile
+import SmoothingCliff.Racing.StrictPriority
+import SmoothingCliff.Racing.MixedRace
+import SmoothingCliff.Racing.AllMixedEquilibria
+import SmoothingCliff.Racing.ZeroPayoffFloor
+import SmoothingCliff.Racing.PayoffIdentity
+import SmoothingCliff.Racing.LayerCake
+import SmoothingCliff.Racing.CdfWindow
+import SmoothingCliff.Racing.SupportFOC
+import SmoothingCliff.Racing.BottomCondition
+import SmoothingCliff.Racing.LatticeCumulative
+import SmoothingCliff.Racing.WindowSlope
+import SmoothingCliff.Racing.FirstRung
+import SmoothingCliff.Racing.AtomSum
+import SmoothingCliff.Racing.RungStep
+import SmoothingCliff.Racing.RungIncrement
+import SmoothingCliff.Racing.SecondRung
+import SmoothingCliff.Racing.RungAdvance
+import SmoothingCliff.Racing.RungCount
+import SmoothingCliff.Racing.LatticeSupport
+import SmoothingCliff.Racing.DissipationFloor
+import SmoothingCliff.Racing.SupportBound
+import SmoothingCliff.Racing.NextSupport
+import SmoothingCliff.Racing.PositiveProfile
+import SmoothingCliff.Racing.BoundaryFloor
+import SmoothingCliff.Racing.NearTieDominance
+import SmoothingCliff.Racing.ConcaveGameExistence
+import SmoothingCliff.Racing.RaceEquilibrium
+import SmoothingCliff.Racing.RaceProfileGame
+import SmoothingCliff.Racing.RentDissipation
+import SmoothingCliff.Racing.RentDissipationCounterexample
+import SmoothingCliff.Racing.SpreadDecay
+import SmoothingCliff.Racing.OptimalCap
+import SmoothingCliff.Racing.OptimalCapGuarantee
+import SmoothingCliff.Racing.OptimalCapPremium
+import SmoothingCliff.Racing.OptimalCapEntryCost
+import SmoothingCliff.Racing.OptimalCapDivergence
+import SmoothingCliff.Racing.OptimalCapCubic
+import SmoothingCliff.Racing.NetSurplus
+import SmoothingCliff.Racing.InterimBridge
+import SmoothingCliff.Racing.NetSurplusGeneralN
+import SmoothingCliff.Racing.OneSlotInterim
+import SmoothingCliff.Racing.UniformLimit
+import SmoothingCliff.Racing.RateContinuity
+import SmoothingCliff.Racing.LowTemperature
+import SmoothingCliff.Racing.TemperatureMonotone
+import SmoothingCliff.Racing.ExactThreshold
+import SmoothingCliff.Racing.RunUpAverage
+import SmoothingCliff.Wrapper.Resampling
+import SmoothingCliff.Wrapper.ScaleKernelTV
+
+/-!
+# Smoothing the Cliff
+
+Paper-specific formalization for `Smoothing_the_Cliff_ITCS.tex`.
+
+The public economics libraries remain dependencies rather than locations for
+unfinished paper-specific declarations. Reusable, completed infrastructure can
+be upstreamed only after it is free of deferred proofs.
+-/
