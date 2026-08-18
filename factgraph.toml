@@ -1,0 +1,902 @@
+# Fact graph: Smoothing the Cliff, ITCS version.
+# Frozen source at kickoff:
+#   paper git commit 33b5e23973c341f776ea4751e900b9a61bd51f83
+#   Smoothing_the_Cliff_ITCS.tex blob 309d077d8e9a403c10e53cd5d55318c52d5e03c4
+# Source moved 2026-08-13 to blob 8b63f1a2262edf33a4c82d9943edcb74fb98f0ac, which
+# repairs prop:rentdissipation (i) and the strict-priority clause of rem:sybilsign
+# and adds rem:coercivity. Only those passages changed; every other node statement
+# and every existing `verified` credential still refers to unchanged text.
+# `verified` is added only after the named Lean declaration passes full-file
+# diagnostics and `lean_verify` without sorryAx or an unapproved custom axiom.
+
+[nodes.A_frontier_domain]
+kind = "assumption"
+statement = "Agents have eligible truthful bids weakly above a nonnegative reserve; one-slot weight and sensitivity are positive."
+
+[nodes.A_frontier_rule]
+kind = "assumption"
+statement = "The reduced-form rule is anonymous, own-bid monotone, own-bid S-Lipschitz, nonnegative, and one-slot feasible on the eligible region."
+
+[nodes.P_frontier2]
+fingerprint = "sha256:5f4b272a0d29"
+kind = "proposition"
+statement = "For two eligible bidders and one slot, every anonymous monotone S-Lipschitz feasible interim rule is bounded by the capped-linear envelope, which is pointwise welfare-optimal; matched-certificate PL is strictly inside it at every positive bid gap."
+depends_on = ["A_frontier_domain", "A_frontier_rule", "L_logistic_tangent"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:1483 (prop:frontier2)"
+notes = "Lean 4.30.0: SmoothingCliff.Frontier.twoBidder_frontier. Full-file Lean-LSP diagnostics returned no findings; lean_verify source scan returned no warnings and only propext, Classical.choice, and Quot.sound. The formal theorem makes the paper's globally inherited nonnegative-reserve premise explicit because pointwise welfare optimality can fail under negative eligible values when feasible rules may discard mass. Ledger: smoothing_cliff_frontier2_lean_20260813."
+
+[nodes.L_logistic_tangent]
+fingerprint = "sha256:de0b49be7447"
+kind = "lemma"
+statement = "For u>0, the logistic function satisfies sigma(u) < min{1/2+u/4,1}."
+depends_on = []
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:1496-1505"
+notes = "Lean 4.30.0: SmoothingCliff.Frontier.logistic_lt_capped_tangent, proved from Mathlib's Real.sigmoid derivative and a strict mean-value estimate. Full-file Lean-LSP diagnostics returned no findings; lean_verify source scan returned no warnings and only standard axioms. Ledger: smoothing_cliff_logistic_tangent_lean_20260813."
+
+[nodes.L_ordering]
+fingerprint = "sha256:09f842d22835"
+kind = "lemma"
+statement = "Every rule in class C assigns weakly more expected priority to a strictly higher bidder."
+depends_on = ["A_frontier_rule"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:1518 (lem:ordering)"
+notes = "Lean 4.30.0: SmoothingCliff.Frontier.allocation_ordering. The proof implements the paper's raise-to-a-tie argument for an arbitrary agent type: own monotonicity, swap anonymity at the induced tie, then cross-monotonicity. Full-file Lean-LSP diagnostics and lean_verify source scan were clean; only standard axioms. Ledger: smoothing_cliff_ordering_lean_20260813."
+
+[nodes.P_squeeze]
+fingerprint = "sha256:df8635bdb863"
+kind = "proposition"
+statement = "Every rule in class C obeys the paper's rank-wise allocation ceilings and floors."
+depends_on = ["A_frontier_domain", "A_frontier_rule", "L_ordering"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:1530 (prop:squeeze)"
+notes = "Lean 4.30.0: SmoothingCliff.Frontier.ranked_squeeze_bounds, with rank-free cores squeeze_ceiling_of_subset and squeeze_floor_of_top. Assignment feasibility is encoded exactly as the subset inequalities sum_{i in H} x_i <= W_|H|; no waste is explicit. RankedProfile packages a genuine descending enumeration, and Lean zero-based rank k corresponds to paper rank k+1. Full-file Lean-LSP diagnostics and individual lean_verify source scans were clean; only standard axioms. Ledger: smoothing_cliff_squeeze_lean_20260813."
+
+[nodes.T_impossibility]
+fingerprint = "sha256:307ba64357ca"
+kind = "theorem"
+statement = "For n>=4 and nondegenerate weights, no rule in class C is pointwise welfare-optimal under the stated delta bound."
+depends_on = ["P_squeeze", "L_ordering", "L_adjacent_shortfall"]
+location = "Smoothing_the_Cliff_ITCS.tex:2296 (thm:impossibility)"
+verified = ["lean"]
+notes = "Lean 4.30.0: SmoothingCliff.Frontier.thm_impossibility in Frontier/RankRuleB.lean, on Frontier/NoPointwiseOptimum.lean. All five clauses are machine-checked with nothing assumed: the two caps, attainment of the R1 cap by rule A, the shortfall inequality 2a+(n-1)b >= 2 S delta^2 with its four hypotheses discharged from class membership, the second rule's tied-leader weight W/n+((n-1)/n) S delta together with the strict ceiling for any R1-cap attainer, and the conclusion that no certified rule is pointwise welfare-optimal. Rule A is affine in the band-clipped scores; rule B is built as an integral over levels of a density with coefficients kappa(1)=S/n and kappa(k)=2(n-1)S/(n(n-2)), which reduces every class property to two scalar monotonicity facts and the own-slope bound, the last binding exactly at n>=4. Feasibility is encoded as the permutohedron subset system, as in P_squeeze, so the credential is issued against that class. Two steps separate it from the paper's lottery formulation: Rado's theorem, absent from Mathlib though its equal-weight case is now proved in Frontier/SlotLottery.lean, and a measurable selection of the lottery across profiles, which the paper supplies by a lexicographic basic feasible decomposition. An audit on 2026-08-14 noted that the gap reaches the conclusion and not only the two attainment clauses, since a negative existential is not monotone in the class. RankRuleB.lean no_pointwise_optimum_in_subclass answers that by proving the conclusion for every class contained in the encoded one that contains the two exhibited rules, so the whole residue is the single fact that rule A and rule B are lottery-implementable. Full-file diagnostics clean; axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_impossibility_clauses_lean_20260814 and smoothing_cliff_impossibility_lean_20260814."
+
+[nodes.L_adjacent_shortfall]
+fingerprint = "sha256:d7cbb2e41e8e"
+kind = "lemma"
+statement = "For the one-leader and two-leader adjacent profiles, the welfare shortfalls satisfy 2a+(n-1)b >= 2 S delta^2; attaining the first cap creates a strict allocation gap at the second profile."
+depends_on = ["A_frontier_rule", "P_squeeze"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:1546-1565, 1616-1624"
+notes = "Lean 4.30.0: SmoothingCliff.Frontier.adjacent_profile_shortfall and tied_leader_strict_gap. These certify the complete algebraic contradiction once the cap equations and the two candidate rules are supplied. They do not certify the paper's global construction/measurable lottery implementation of rules A and B, so T_impossibility remains unverified."
+
+[nodes.L_gridinterp]
+kind = "lemma"
+statement = "A rational allocation on the three-bidder gap grid satisfying the listed discrete constraints extends by the stated triangulation and boundary clamp to a global rule in class C."
+depends_on = ["A_frontier_domain", "A_frontier_rule"]
+location = "Smoothing_the_Cliff_ITCS.tex:1637 (lem:gridinterp)"
+notes = "SCOPE LIMIT (author decision 2026-08-13): deliberately not pursued, for the same reason as P_threebidders. The interpolation conditions are exactly what the external exact checker verifies on the witness grid."
+
+[nodes.P_threebidders]
+kind = "proposition"
+statement = "For three bidders and one slot, no rule in class C is pointwise welfare-optimal; together with the n>=4 theorem, the two-bidder rule is the exact boundary."
+depends_on = ["P_frontier2", "L_gridinterp", "P_squeeze"]
+location = "Smoothing_the_Cliff_ITCS.tex:244 (prop:threebidders)"
+notes = "SCOPE LIMIT (author decision 2026-08-13): this node is deliberately not pursued to a Lean credential. The 19x19 rational witness already passes an exact-arithmetic standard-library checker outside Lean and the paper labels the proposition computer-assisted. Porting the checker into Lean would be mechanical transcription adding no information beyond the existing artifact."
+
+[nodes.P_extraction]
+fingerprint = "sha256:53aab176345e"
+kind = "proposition"
+statement = "With one slot and a nondecreasing external-extraction share, discounting extraction weakly reduces the pointwise and minimax welfare cost of the cap; a constant share scales every gap by 1-lambda*phi0."
+depends_on = ["A_frontier_domain"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:2345 (prop:extraction)"
+notes = "Lean 4.30.0: extraction_gap_le proves the finite-profile inequality under exactly the nonnegative-value, monotone-share, nonnegative-allocation and free-disposal premises; minimax_loss_mono proves the supremum/infimum consequence in any complete lattice; constant_extraction_gap proves exact scaling. Full-file diagnostics and individual lean_verify scans are required before this tag is retained."
+
+[nodes.A_luce_intensity]
+kind = "assumption"
+statement = "On the eligible half-line, every agent uses the same continuous, strictly positive, strictly increasing intensity function in a finite sequential Luce process."
+
+[nodes.P_axiomatization]
+fingerprint = "sha256:89456970e9cc"
+kind = "proposition"
+statement = "Within positive continuous strictly increasing sequential Luce rules on eligible bids, invariance of the complete ranking distribution under every common nonnegative bid translation holds if and only if alpha(b)=c0*exp(b/tau) for some c0>0 and finite tau>0."
+depends_on = ["A_luce_intensity"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:395 (prop:axiomatization), proof at 841-852"
+notes = "Lean 4.30.0: SmoothingCliff.Mechanism.translation_invariant_rankings_iff_exponential. Eligible bids are represented exactly as reserve+x with x:NNReal. Valid ordered-tuple probabilities are products of sequential Luce stage probabilities; binary full rankings recover the pairwise odds, closing both directions between ranking-distribution invariance and the functional equation. The continuous Cauchy argument extends the additive log increment from NNReal to Real before applying linearity. Full-file Lean-LSP diagnostics and lean_verify source scans were clean; only standard axioms. Ledger: smoothing_cliff_axiomatization_lean_20260813."
+
+[nodes.A_single_parameter]
+kind = "assumption"
+statement = "After fixing opponents, types lie in a compact interval and the interim allocation is nonnegative and monotone; the Econlib normalization scales allocation to the unit interval."
+
+[nodes.A_single_parameter_global]
+kind = "assumption"
+statement = "After fixing opponents, the type and report domain is [0,infinity); the interim allocation has a global monotone nonnegative real extension bounded by an arbitrary nonnegative priority scale."
+
+[nodes.L_payment_identity_unit]
+fingerprint = "sha256:8978a8845a51"
+kind = "lemma"
+statement = "For a unit-normalized monotone single-parameter interim allocation, BIC holds if and only if payments obey the envelope identity up to an opponent-dependent constant; reserve screening gives the displayed piecewise payment and interim IR."
+depends_on = ["A_single_parameter"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:1962-1997 (prop:payment_identity and cor:ir, unit-normalized core)"
+notes = "Lean 4.30.0: SmoothingCliff.Payments.isBIC_iff_paymentIdentity, isBIC_iff_zeroBasedPaymentIdentity, reservePayment_isBIC, reservePayment_at_boundary, and reservePayment_interimIR, using Econlib's ScreeningEnv and AllocationRule. Both directions of the payment characterization are proved. Scope boundary: Econlib normalizes allocation to [0,1] on a compact type interval; the paper's arbitrary priority-weight scale still needs an explicit scaling/generic-interface bridge before P_payment_identity itself receives a Lean credential. Ledger: smoothing_cliff_payment_identity_unit_lean_20260813."
+
+[nodes.A_pl_stability]
+kind = "assumption"
+statement = "Temperature is positive, slot weight and opponent aggregate intensity are nonnegative, and eligible one-slot Luce intensity is exp((b-r)/tau)."
+
+[nodes.C_tight_K1]
+fingerprint = "sha256:3a694b91f621"
+kind = "corollary"
+statement = "For one slot, the own-bid Lipschitz constant of expected PL allocation on the eligible region is w1/(4 tau), and this derivative bound is attained at a balanced two-agent profile."
+depends_on = ["A_pl_stability"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:1004 (cor:tight-K1)"
+notes = "Lean 4.30.0: SmoothingCliff.Mechanism.oneSlotLuceAllocation_lipschitz_eligible and hasDerivAt_oneSlotLuceAllocation_balanced. The exact derivative q(1-q)/tau is bounded by 1/(4tau), Mathlib's convex mean-value theorem gives the global eligible-region Lipschitz statement, and balanced intensities attain equality. Full-file diagnostics and lean_verify were clean; only standard axioms. Ledger: smoothing_cliff_tight_k1_lean_20260813."
+
+[nodes.L_spread]
+fingerprint = "sha256:3bdd1014d50e"
+kind = "lemma"
+statement = "The derivative of truthful utility with respect to additive bid-equivalent advantage equals the endpoint allocation spread minus marginal cost; the spread lies in [0,min{w1,(v-r)S}], hence under PL in [0,min{w1,(v-r)w1/(e tau)}]."
+depends_on = ["A_pl_stability"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:327 (lem:spread)"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.plMarginalValue_and_spread_bounds, with advantageUtility_hasDerivAt and allocationSpread_bounds. The moving-interval FTC is proved under explicit allocation continuity and a pointwise cost derivative; Lipschitz supplies continuity. Full-file diagnostics and lean_verify were clean; only standard axioms. Ledger: smoothing_cliff_spread_lean_20260813."
+
+[nodes.L_welfareloss_one_slot]
+fingerprint = "sha256:ef2e4e7690c7"
+kind = "lemma"
+statement = "For a finite one-slot PL profile with a highest-value eligible agent, strict-priority welfare minus PL welfare is at most (n-1) w1 tau/e."
+depends_on = ["A_pl_stability"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:2064-2076 (lem:welfareloss, K=1 clause)"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.oneSlot_pl_welfare_loss_le. The proof derives exact normalized PL probabilities and the welfare-gap identity, bounds each non-top probability by exp(-Delta/tau), proves x exp(-x)<=1/e, and removes the zero top term to obtain n-1. This credentials only the K=1 sharpening, not the paper's general multi-slot inversion bound. Ledger: smoothing_cliff_welfareloss_k1_lean_20260813."
+
+[nodes.A_wrapper]
+kind = "assumption"
+statement = "The single-call wrapper independently resamples each of n reports with probability mu in [0,1]; allocation coordinates lie in [0,w1], and for the certificate the conditional bad-event kernel is TV-Lipschitz with published constant L_G."
+
+[nodes.L_wrapper_wedge]
+fingerprint = "sha256:aeb1d566199c"
+kind = "lemma"
+statement = "The wrapper allocation wedge is at most [1-(1-mu)^n]w1 <= n mu w1, and on [r,bbar] its expected zero-normalized Myerson payment wedge is at most 2 bbar [1-(1-mu)^n]w1."
+depends_on = ["A_wrapper"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:2459 (lem:wrapper_wedge)"
+notes = "Lean 4.30.0: SmoothingCliff.Wrapper.resampling_allocation_wedge, resampling_allocation_wedge_unionBound, and resampling_payment_wedge. The bad-event mixture and Bernoulli/union bound are explicit; the payment proof shows the shared below-reserve integral cancels rather than assuming the payment result. Full diagnostics and lean_verify were clean; only standard axioms. Ledger: smoothing_cliff_wrapper_wedge_lean_20260813."
+
+[nodes.L_wrapper_cert]
+fingerprint = "sha256:3edd5b0fcf71"
+kind = "lemma"
+statement = "If the conditional resampling kernel is total-variation L_G-Lipschitz in the report, the deployed allocation vector is Lipschitz with constant (1-mu)w1/(e tau)+mu w1 L_G."
+depends_on = ["A_wrapper", "L_wrapper_wedge"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:2491 (lem:wrapper_cert)"
+notes = "Lean 4.30.0: SmoothingCliff.Wrapper.wrapper_certificate, built from an actual ProbabilityMeasure kernel and a bounded-test-function dual total-variation premise. As in the paper, the theorem is conditional on TV-Lipschitzness; it does not construct the Babaioff resampling kernel. Full diagnostics and lean_verify were clean; only standard axioms. Ledger: smoothing_cliff_wrapper_cert_lean_20260813."
+
+[nodes.A_crossagent]
+kind = "assumption"
+statement = "On a fixed eligible set, the interim rule is own-Lipschitz and cross-monotone, and total allocated priority mass is constant."
+
+[nodes.L_crossagent]
+fingerprint = "sha256:3bc502a87ed3"
+kind = "lemma"
+statement = "Raising one eligible bid lowers every other allocation by a nonnegative amount no larger than the raised bidder's own Lipschitz budget, so the full allocation vector has the same sup-norm Lipschitz constant."
+depends_on = ["A_crossagent"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:479 (lem:crossagent)"
+notes = "Lean 4.30.0: SmoothingCliff.Mechanism.crossAgentSensitivity and fullAllocationVector_lipschitz. Conservation identifies the sum of all other coordinate losses with the perturbed coordinate's gain, and each nonnegative summand is bounded by that total. Fixed ineligible agents correspond to omitted zero coordinates. Full diagnostics and lean_verify were clean; only standard axioms. Ledger: smoothing_cliff_crossagent_lean_20260813."
+
+[nodes.C_paymentvector]
+fingerprint = "sha256:384e562d9dc2"
+kind = "corollary"
+statement = "On bids in [r,bbar], the reserve-normalized Myerson payment vector is Lipschitz in each eligible coordinate with sup-norm constant 2 bbar S, hence 2 bbar w1/(e tau) for PL."
+depends_on = ["L_crossagent", "L_payment_identity_unit"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:1051 (cor:paymentvector)"
+notes = "Lean 4.30.0: SmoothingCliff.Mechanism.fullPaymentVector_lipschitz, with explicit myersonPayment, own-coordinate and cross-coordinate integral estimates. The formal theorem is written for arbitrary S; substituting S=w1/(e tau) is definitional algebra. Full diagnostics and lean_verify were clean; only standard axioms. Ledger: smoothing_cliff_paymentvector_lean_20260813."
+
+[nodes.A_strict_priority_race]
+kind = "assumption"
+statement = "Two agents choose nonnegative bid-equivalent latency advantages in the common-value strict-priority race with band G=v-r>0, slot weight w1>0, and linear marginal cost kappa>0."
+
+[nodes.P_sp_race_pure]
+fingerprint = "sha256:710593914779"
+kind = "proposition"
+statement = "The paper's five cost regimes give the stated complete classification of pure Nash equilibria and their dissipation; for 0<kappa<w1/2 no pure equilibrium exists."
+depends_on = ["A_strict_priority_race"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:2229-2242 (prop:sp_race, pure-strategy clauses)"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.pureNash_iff_of_weight_lt_cost, pureNash_iff_of_cost_eq_weight, pureNash_iff_of_half_weight_lt_cost, pureNash_iff_of_cost_eq_half_weight, and no_pureNash_of_cost_lt_half_weight, plus dissipation theorems. Best response and PureNash are defined by quantifying over all nonnegative deviations, not assumed. The mixed-equilibrium positive-dissipation clause remains outside this credential because the project does not yet define mixed strategies and expected best responses. Ledger: smoothing_cliff_sp_race_pure_lean_20260813."
+
+[nodes.A_pl_process]
+kind = "assumption"
+statement = "Eligible agents are ranked by a finite exponential race with rates exp((b_i-r)/tau), tau>0, and receive a nonincreasing nonnegative slot-weight profile."
+
+[nodes.L_rank_monotonicity]
+fingerprint = "sha256:26315a5a42f4"
+kind = "lemma"
+statement = "Under the common-exponential coupling, raising one eligible bidder's bid weakly improves that bidder's realized rank in every sample path."
+depends_on = ["A_pl_process"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:1957 (lem:rank_monotonicity)"
+notes = "Lean 4.30.0: SmoothingCliff.Mechanism.raceRank_mono_own and plRankMonotonicityPathwise define the actual finite race rank with a fixed tie-break and derive pathwise rank improvement from the exponential race key E_i/exp((b_i-r)/tau). plRankFirstOrderDominance then gives top-rank-event FOSD under any ProbabilityMeasure. The theorem is law-free for arbitrary common nonnegative shocks, so iid Exp(1) is an instance rather than an extra proof assumption. Full-file diagnostics and lean_verify source scans were clean; only standard axioms. Ledger: smoothing_cliff_rank_monotonicity_lean_20260813."
+
+[nodes.L_interim_monotonicity]
+fingerprint = "sha256:ca096dc85e61"
+kind = "lemma"
+statement = "For fixed opponents, PL interim expected priority is nondecreasing in an eligible own bid and is zero strictly below the reserve."
+depends_on = ["L_rank_monotonicity"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:1962 (lem:interim_monotonicity)"
+notes = "Lean 4.30.0: SmoothingCliff.Mechanism.priorityAtRank, plRealizedPriority_mono, plEligibleInterimPriority_mono, plInterimPriority_of_lt_reserve, and plInterimPriority_monotone. Nonincreasing nonnegative finite slot weights turn pathwise rank improvement into pathwise priority improvement; bounded measurable realized priorities are integrated with a genuine Bochner integral, and the reserve-screened rule is monotone on the full real bid domain. Full-file diagnostics and lean_verify source scans were clean; only standard axioms. Ledger: smoothing_cliff_interim_monotonicity_lean_20260813."
+
+[nodes.L_stability_conditioned_core]
+fingerprint = "sha256:ce3073e262ad"
+kind = "lemma"
+statement = "Conditional on the finite opponent arrival order statistics in a general top-K exponential race, Abel summation gives a nonnegative own-bid derivative bounded by w1/(e tau); integrating over any probability law preserves the eligible-region Lipschitz bound, permits differentiation under the integral, yields the almost-everywhere derivative bounds, and gives the reserve right derivative."
+depends_on = ["A_pl_process"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:140 and 445 (thm:stability, conditional-order-statistics analytic core)"
+notes = "Lean 4.30.0: SmoothingCliff.Mechanism.weighted_interval_sum_eq_abel_with_terminal, conditionalIntervalPriority_eq_abel, conditionalBidDerivative_bounds, conditionedInterimPriority_lipschitz, conditionedInterimPriority_ae_derivative_bounds, conditionedInterimPriority_hasDerivAt, conditionedReserveInterimPriority_hasRightDerivAt, and generalTopKStability. Opponent thresholds use Option Real with none as +infinity padding; the proof derives u*exp(-u)<=exp(-1), telescopes weight decrements, and justifies Bochner differentiation under a uniform derivative bound. Scope boundary: a separate representation bridge is still needed to construct these order statistics from Monotonicity.raceRank's finite opponent-key vector and prove the conditional/disintegrated integral equals that module's original interim priority. Full-file diagnostics are empty and lean_verify source scans were clean; only standard axioms. Ledger: smoothing_cliff_general_stability_core_lean_20260813."
+
+[nodes.L_tie_null]
+fingerprint = "sha256:dbb87c5dda7b"
+kind = "lemma"
+statement = "The exponential law has no atoms, so a finite set of opponent thresholds is null, and almost every own clock value avoids every opponent threshold after scaling by the intensity."
+depends_on = ["A_pl_process"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (thm:stability, tie-nullity block)"
+notes = "Lean 4.30.0: SmoothingCliff.Mechanism.noAtoms_expMeasure, expMeasure_singleton, expMeasure_finset_null, expMeasure_tie_range_null, expMeasure_scaled_tie_range_null, and eventually_no_tie in Mechanism/TieNull.lean. Atomlessness comes from the Mathlib identification expMeasure r = gammaMeasure 1 r = volume.withDensity, together with the withDensity NoAtoms instance. This is the first of the three blocks that thm:stability still needs; it is what lets the index tie-break in ArrivesBefore be dropped almost everywhere. Full-file diagnostics: no findings; lean_verify scan_source=true: no warnings, axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_tie_null_lean_20260813."
+
+[nodes.L_rank_interval]
+fingerprint = "sha256:1db5704fb263"
+kind = "lemma"
+statement = "On a sorted opponent list the count of opponents strictly before a time equals a given rank exactly when the time lies strictly after the first rank entries and, when a further entry exists, at or before it."
+depends_on = ["A_pl_process"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (thm:stability, rank-interval block)"
+notes = "Lean 4.30.0: SmoothingCliff.Mechanism.countBefore and its cons lemmas, countBefore_eq_zero_of_head_le, getElem_lt_of_lt_countBefore, le_getElem_of_countBefore_le, countBefore_eq_iff, and countBefore_eq_iff_sortedLE in Mechanism/RankInterval.lean. The content is that in a sorted list the entries below a threshold form a prefix, so the count is the insertion index. The induction runs on the pairwise form of sortedness and the final statement is restated against the SortedLE form that ConditionedOpponentOrderStats uses. This is block B of three for thm:stability. Full-file diagnostics: no findings; lean_verify scan_source=true: no warnings, axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_rank_interval_lean_20260813."
+
+[nodes.L_racerank_bridge]
+fingerprint = "sha256:a86383b595a4"
+kind = "lemma"
+statement = "Away from ties, arriving before is having a smaller key, an agent never arrives before herself, and the realized race rank equals the number of opponent keys strictly below the own key, counted either on the opponent set or on its sorted list."
+depends_on = ["L_tie_null", "L_rank_interval"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (thm:stability, race-rank bridge)"
+notes = "Lean 4.30.0: SmoothingCliff.Mechanism.arrivesBefore_iff_lt, not_arrivesBefore_self, raceRank_eq_card_filter, countBefore_sortedOpponentKeys, and raceRank_eq_countBefore in Mechanism/RaceRankBridge.lean. This is the combinatorial half of block C: it identifies the rank notion of the monotonicity development, a count over all agents with the agent order breaking ties, with the count on the sorted opponent list that the stability development uses. The no-tie hypothesis is discharged almost everywhere by L_tie_null. The remaining half of block C is measure-theoretic: the Fubini split exhibiting the measure as an opponent law times an independent Exp(1) own coordinate. Full-file diagnostics: no findings; lean_verify scan_source=true: no warnings, axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_racerank_bridge_lean_20260813."
+
+[nodes.L_shock_rank_event]
+fingerprint = "sha256:7ac1d600819f"
+kind = "lemma"
+statement = "The own clock, scaled by the intensity, lands in the rank-th interval of the conditioned rank event exactly when that many opponents arrive strictly before the own arrival time."
+depends_on = ["L_rank_interval"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (thm:stability, interval-membership block)"
+notes = "Lean 4.30.0: SmoothingCliff.Mechanism.exp_mul_le_exp_mul_iff, exp_mul_lt_exp_mul_iff, and mem_conditionedShockRankEvent_iff in Mechanism/ShockRankEvent.lean. The proof is the full case analysis over the interval shapes of conditionedShockRankEvent: the initial half-line, an interior half-open interval, the terminal half-line, and the empty case past the last opponent. Sortedness is what turns the events single lower comparison into the full below-condition of the count characterization. With this the pointwise chain is complete: no tie gives rank equals count by L_racerank_bridge, and count equals interval membership here. Full-file diagnostics: no findings; lean_verify scan_source=true: no warnings, axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_shock_rank_event_lean_20260813."
+
+[nodes.L_realized_priority_bridge]
+fingerprint = "sha256:bdf0e6e9f135"
+kind = "lemma"
+statement = "An indicator sum over disjoint rank intervals collapses to the weight at the occupied interval, so away from ties the realized priority read off the race rank equals the conditioned priority read off the interval the own clock occupies."
+depends_on = ["L_tie_null", "L_rank_interval", "L_racerank_bridge", "L_shock_rank_event"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (thm:stability, pointwise identity)"
+notes = "Lean 4.30.0: SmoothingCliff.Mechanism.sum_indicator_rankEvent and plEligibleRealizedPriority_eq_conditionedFiniteRacePriority in Mechanism/RealizedPriorityBridge.lean. This is the last piece of mathematical content in the theorem. The chain assembled across TieNull, RankInterval, RaceRankBridge and ShockRankEvent gives that exactly one interval is occupied and its index is the race rank, so the interval sum collapses to the single weight there, with the out-of-slots case giving zero on both sides. What remains is plumbing rather than content: the measure must be exhibited as an opponent law times an independent own coordinate so the two integrals can be compared by Fubini, which also needs the product measurability of the rank function. Full-file diagnostics: no findings; lean_verify scan_source=true: no warnings, axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_realized_priority_bridge_lean_20260813."
+
+[nodes.L_stability_product]
+fingerprint = "sha256:4145af8b418e"
+kind = "lemma"
+statement = "Order-statistic records built from key vectors agreeing off the bidder's own coordinate are equal whatever proofs they carry, and with the own coordinate an independent unit exponential the rank-based interim allocation equals the conditioned interim allocation that carries the stability bounds."
+depends_on = ["L_realized_priority_bridge", "L_tie_null"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (thm:stability, representation identity)"
+notes = "Lean 4.30.0: SmoothingCliff.Mechanism.ConditionedOpponentOrderStats.ext_threshold, sortedOpponentKeys_congr, opponentOrderStats_congr, productShock and its two evaluation lemmas, eventually_no_tie_fintype, and plEligibleInterimPriority_prod_eq_finiteRace in Mechanism/StabilityProduct.lean. The congruence lemma is what removes the friction recorded earlier: the record has one data field and four Prop fields, so proof irrelevance makes records with equal thresholds equal, and the sorted opponent list never reads the bidder's own coordinate. The split is then integral_prod with the integrability hypothesis passed in, the credentialed pointwise identity, and the null tie set. One incident worth keeping: the final step failed as a rewrite because plEligibleRealizedPriority resolves DecidableEq through LinearOrder while the statement carried an explicit instance; dropping the explicit instance fixed it. Full-file diagnostics: no findings; lean_verify scan_source=true: no warnings, axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_stability_product_lean_20260813."
+
+[nodes.T_stability]
+fingerprint = "sha256:771bfa7b4a9f"
+depends_on = ["L_stability_conditioned_core", "L_stability_finite_race_bridge", "L_tie_null", "L_rank_interval", "L_racerank_bridge", "L_shock_rank_event", "L_realized_priority_bridge", "L_stability_product"]
+verified = ["lean"]
+kind = "theorem"
+statement = "For general top-K reserve-screened PL, interim allocation is nondecreasing and w1/(e tau)-Lipschitz in an eligible own bid, with the displayed almost-everywhere derivative bounds."
+location = "Smoothing_the_Cliff_ITCS.tex:445 (thm:stability)"
+notes = "Credentialed 2026-08-13. The derivative bound, the eligible-region Lipschitz bound and the right derivative at the reserve were already proved for the real opponent race by finiteExponentialRaceTopKStability over plOpponentOrderStats. What was missing was that the object carrying those bounds had never been identified with the interim allocation the monotonicity and truthfulness development uses, which ranks by raceRank with an index tie-break. That identification is now complete in five steps: the tie set is null (L_tie_null), the entries below a threshold in a sorted list form a prefix (L_rank_interval), raceRank is therefore the count on the sorted opponent list (L_racerank_bridge), that count is exactly which interval the own clock occupies (L_shock_rank_event), so the two realized priorities agree pointwise (L_realized_priority_bridge), and with the own coordinate an independent unit exponential the two integrals agree (L_stability_product). SCOPE: the identification is stated on a product measure, an opponent law times an independent Exp(1) own coordinate, which is the model the paper describes, and it takes integrability of the realized priority on the product as a hypothesis in the style the stability theorem already uses for measurability."
+
+[nodes.L_stability_finite_race_bridge]
+fingerprint = "sha256:9f4863e6a789"
+kind = "lemma"
+statement = "For a finite explicit exponential race, sorting opponent keys gives conditioned order statistics; integrating the own Exp(1) shock reproduces conditional interval priority, integrating over opponent shocks reproduces finite-race interim priority, and the general top-K stability theorem yields the paper's derivative and Lipschitz bounds without assuming them."
+depends_on = ["A_pl_process", "L_stability_conditioned_core"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:693-744 (thm:stability, explicit finite-race bridge)"
+notes = "Lean 4.30.0: SmoothingCliff.Mechanism.conditionedShockRankEvent_mass, conditionedFiniteRacePriority_integral_eq_conditionalPriority, finiteRaceInterimPriority_eq_conditionedInterimPriority, and finiteExponentialRaceTopKStability. Full-file diagnostics were clean after linter/deprecation cleanup; lean_verify source scans used only standard axioms. Scope boundary: the a.e. equality with the older index-tie-broken raceRank/plEligibleInterimPriority API is not yet packaged. Ledger: smoothing_cliff_stability_finite_race_bridge_lean_20260813."
+
+[nodes.P_payment_identity]
+fingerprint = "sha256:aed3e2c3d14f"
+kind = "proposition"
+statement = "For the paper's arbitrary priority-weight scale, a monotone single-parameter interim allocation is TIE-implementable iff expected payments satisfy the envelope identity up to a constant; reserve normalization gives the displayed piecewise payment."
+depends_on = ["A_single_parameter_global", "L_payment_identity_unit"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:1972 (prop:payment_identity)"
+notes = "Lean 4.30.0: SmoothingCliff.Payments.globalIsBIC_iff_paymentIdentity is a genuine iff on the noncompact type/report domain [0,infinity), for an arbitrary nonnegative allocation scale w1 including w1=0. Necessity anchors one common global envelope constant at type zero; sufficiency handles every pair of nonnegative reports. The proof dynamically embeds each finite comparison in an Econlib compact ScreeningEnv but the public theorem has no upper type bound. globalReservePayment_paymentIdentity, globalReservePayment_isBIC, and globalReservePayment_at_boundary give the displayed reserve-normalized formula. Full-file diagnostics and lean_verify source scans were clean; only standard axioms. Ledger: smoothing_cliff_payment_identity_global_lean_20260813."
+
+[nodes.C_ir]
+fingerprint = "sha256:f602b3cc2f84"
+kind = "corollary"
+statement = "Under truthful bidding and the reserve-normalized payment, interim utility is zero below the reserve and equals a nonnegative allocation integral above it."
+depends_on = ["P_payment_identity"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:1997 (cor:ir)"
+notes = "Lean 4.30.0: SmoothingCliff.Payments.globalTruthfulUtility_reservePayment and globalReservePayment_interimIR on [0,infinity), with arbitrary nonnegative priority scale and no compact upper type bound. The utility identity is exact and nonnegativity follows from the nonnegative allocation integral. Full-file diagnostics and lean_verify source scans were clean; only standard axioms. Ledger: smoothing_cliff_ir_global_lean_20260813."
+
+[nodes.L_luceopt_one_slot]
+fingerprint = "sha256:7ee22b30ea03"
+kind = "lemma"
+statement = "For every finite nonempty eligible profile and nonnegative one-slot weight, among positive increasing differentiable Luce intensities whose logarithmic derivative is bounded by 1/tau, the reserve-normalized exponential intensity maximizes expected welfare profile by profile."
+depends_on = ["A_pl_process"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:499 (prop:luceopt, K=1 specialization and analytic tilt core)"
+notes = "Lean 4.30.0: SmoothingCliff.LuceOptimality.intensity_ratio_le_exponential integrates the pointwise log-derivative cap without assuming derivative continuity; relativeExponentialTilt_mono proves that the exponential rule is an increasing multiplicative tilt; weighted_association proves the finite Chebyshev association inequality from a nonnegative double sum; exponential_oneSlot_welfare_optimal applies it to the exact Luce welfare fraction. Scope boundary: general K still needs a without-replacement sequential-ranking top-set coupling and an Abel lift from all top-k inclusion probabilities to nonincreasing slot weights. Full-file diagnostics and lean_verify source scans were clean; only standard axioms. Ledger: smoothing_cliff_luceopt_one_slot_lean_20260813."
+
+[nodes.P_luceopt]
+fingerprint = "sha256:d8736db3074d"
+kind = "proposition"
+statement = "Among increasing differentiable sequential Luce intensities with log derivative at most 1/tau, the exponential intensity maximizes expected welfare profile by profile for every slot count and nonincreasing weight profile."
+depends_on = ["A_pl_process", "L_rank_monotonicity", "L_luceopt_one_slot"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:499 (prop:luceopt)"
+notes = "Lean 4.30.0: SmoothingCliff.LuceOptimalityGeneralK.topK_value_sum_tilt_mono proves common-clock dominance for every top-k prefix of the actual without-replacement race ranking; sequentialLuceWelfare_abel and sequentialLuceWelfare_tilt_mono lift it by Abel summation to arbitrary nonincreasing nonnegative slot weights; exponential_sequentialLuceWelfare_optimal and exponential_iidUnitExponential_expectedWelfare_optimal instantiate the exponential intensity and a concrete finite iid unit-exponential clock law. No optimality conclusion is assumed. Full-file diagnostics and lean_verify source scans were clean; only standard axioms. Ledger: smoothing_cliff_luceopt_generalK_lean_20260813."
+
+[nodes.L_uniform_endpoint]
+fingerprint = "sha256:4aec9921bb18"
+kind = "lemma"
+statement = "At equal rates the recursive Plackett-Luce mass is uniform on permutations, the law is exchangeable so every agent has the same interim allocation, and each allocation equals the allocated priority mass divided by the number of agents."
+depends_on = ["L_interim_bridge", "A_pl_process"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:revenue, high-temperature endpoint)"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.removeChosenRate_const, plPermutationMass_const, rankingInterimPriority_const_congr, and rankingInterimPriority_const_eq in Racing/UniformLimit.lean. Exchangeability is proved by reindexing the permutation sum with left multiplication by a transposition; the per-agent value then follows from the conservation identity of L_interim_bridge rather than from a counting argument. This is the endpoint of the high-temperature clause; the convergence of the reserve-adjusted rates to that endpoint as the temperature grows, which needs continuity of the recursive mass in the rate vector, is not yet formalized. Full-file diagnostics: no findings; lean_verify scan_source=true: no warnings, axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_uniform_endpoint_lean_20260813."
+
+[nodes.L_rate_continuity]
+fingerprint = "sha256:44db7150c7be"
+kind = "lemma"
+statement = "The recursive Plackett-Luce mass is continuous in the rate vector at every strictly positive rate, the reserve-adjusted rates converge to a common value as the temperature grows, and therefore each agent's interim allocation converges to the allocated priority mass divided by the number of agents."
+depends_on = ["L_uniform_endpoint"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:revenue, high-temperature clause, allocation half)"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.continuous_removeChosenRate, plPermutationMass_continuousAt, plRateInterim, plRateInterim_eq, plRateInterim_continuousAt, shiftedExponentialRate_tendsto_one, and plRateInterim_tendsto_uniform in Racing/RateContinuity.lean. Continuity is an induction on the recursion: the mass is a finite composition of coordinate projections, a sum, and one division whose denominator is positive at positive rates. plRateInterim writes the interim allocation directly on the rate vector so that no dependent positivity proof travels through the limit. Full-file diagnostics: no findings; lean_verify scan_source=true: no warnings, axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_rate_continuity_lean_20260813."
+
+[nodes.P_revenue]
+fingerprint = "sha256:060fb6bc02f3"
+kind = "proposition"
+statement = "Truthful revenue is the displayed finite sum, converges to the deterministic position-auction revenue as the temperature vanishes, and to the reserve times allocated priority mass as it grows."
+depends_on = ["P_payment_identity", "L_revenue_bridge", "L_uniform_endpoint", "L_rate_continuity"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:revenue)"
+notes = "All three clauses are credentialed as of 2026-08-14. Clause (i), the finite-sum identity, is P_payment_identity. The high-temperature clause (iii) is L_uniform_endpoint for the equal-rate value and L_rate_continuity for the convergence, aggregated by Mechanism.totalPayment_tendsto_reserve_mul_mass. The low-temperature clause (ii) is Racing/LowTemperature.lean: an explicit concentration bound for the Plackett-Luce mass under geometric rate separation, the separation supplied by any untied profile, the transfer of that concentration to the interim allocation, and the three hypotheses of myersonCurvePayment_tendsto_of_dominated (continuity hence measurability in the report, the weight bound as domination, and pointwise convergence off the finitely many tied reports), assembled into myersonCurvePayment_tendsto_deterministic and summed over agents by totalMyersonPayment_tendsto_deterministic. The low-temperature clause is stated over the Plackett-Luce ranking law, the same object the net-surplus propositions use and the same pairing the credentialed high-temperature clause uses."
+verified = ["lean"]
+
+[nodes.L_revenue_bridge]
+fingerprint = "sha256:22e6fa363e2e"
+kind = "lemma"
+statement = "Total reserve-normalized Myerson revenue equals the finite sum of bid-times-allocation minus allocation integrals; dominated pointwise convergence of each allocation curve passes through each payment and finite aggregation, and a constant limiting allocation yields reserve times total allocated mass."
+depends_on = ["P_payment_identity"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:881-911 (prop:revenue(i) and bounded-convergence step)"
+notes = "Lean 4.30.0: SmoothingCliff.Mechanism.totalMyersonRevenue_eq, myersonCurvePayment_tendsto_of_dominated, myersonCurvePayment_const, myersonCurvePayment_tendsto_const_of_dominated, totalPayment_tendsto_reserve_mul_mass, and uniformAllocation_totalRevenue_eq. This closes the payment formula and the dominated-convergence/finite-aggregation argument. Scope boundary: the full top-K Plackett-Luce allocation still has to be shown to converge to deterministic ranks as tau->0 and uniform sampling without replacement as tau->infinity before P_revenue receives a credential. Full-file diagnostics and lean_verify source scans were clean; only standard axioms. Ledger: smoothing_cliff_revenue_bridge_lean_20260813."
+
+[nodes.T_sybil]
+fingerprint = "sha256:d23e96544d19"
+kind = "theorem"
+statement = "A unit-demand flat-weight coalition's gain from any identity split is bounded by w1 times the missing single-identity allocation integral; for K=1 the bound has the stated logarithmic closed form and two upper bounds."
+depends_on = ["P_payment_identity", "A_pl_process"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:915 (thm:sybil)"
+notes = "Lean 4.30.0: SmoothingCliff.Mechanism.reserve_coalition_utility_nonpos, maximalCoalitionGain_le_integral, oneSlotFailureIntegral_closedForm, oneSlotClosedForm_le_min, and oneSlot_sybil_rent_certificate. Strategy is an arbitrary type, so it covers the disjoint union over every finite identity count and joint bid vector; coalition allocation is bounded in [0,w1], and the reserve-utility premise is derived from the per-identity TIE consequence. The K=1 integral is evaluated by FTC and both branches of the min bound are proved. Full-file diagnostics and lean_verify source scans were clean; only standard axioms. Ledger: smoothing_cliff_sybil_lean_20260813."
+
+[nodes.R_sybil_strict_priority_limit]
+fingerprint = "sha256:5a9ef5ba2054"
+kind = "proposition"
+statement = "In rem:sybilsign the truthful two-identity gain has a strict-priority limit that depends on the opponents top order statistic: zero when some opponent bids at least the coalition value, and minus w1 times the contested band against no eligible opponent."
+depends_on = ["A_pl_process", "P_payment_identity"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (rem:sybilsign)"
+notes = "Paper text repaired 2026-08-13. The earlier sentence asserted without qualification that the gain vanishes in the strict-priority limit by second-price logic, and contradicted the same remark's own statement that the gain is negative for a sufficiently dominant coalition. Lean verified the zero-opponent closed form and its limit minus w1 times (v minus r): SmoothingCliff.Mechanism.twoIdentityTruthfulGain_zeroCongestion_closedForm, twoIdentityTruthfulGain_zeroCongestion_tendsto, and twoIdentityTruthfulGain_zeroCongestion_strictPriority_counterexample (ledger smoothing_cliff_sybil_strict_priority_counterexample_lean_20260813). BOTH HALVES ARE NOW CREDENTIALED (2026-08-14): Mechanism/SybilStrictPriority.lean twoIdentityTruthfulGain_strictPriority_tendsto_of_top_bid gives the congested branch, the gain vanishing as the temperature falls once some opponent bids at least the coalition value, by dominated convergence on the contested band, and twoIdentityTruthfulGain_strictPriority_dichotomy packages it with the earlier zero-opponent limit and records that the two limits differ. Ledger: smoothing_cliff_sybil_strict_priority_lean_20260814."
+
+
+[nodes.L_welfareloss_general_core]
+fingerprint = "sha256:b186fbedd51a"
+kind = "lemma"
+statement = "For any realized finite ranking and nonincreasing top-K weights, strict-priority welfare minus realized welfare is nonnegative and bounded by the maximum adjacent weight drop times the sum of inverted-pair value gaps; for any finite permutation law whose inversion decomposition and pairwise marginals are those of the exponential race, taking expectations yields the paper's pairwise sigmoid bound and the binomial tau/e bound."
+depends_on = ["A_pl_process"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:1267-1290 and 2064 (lem:welfareloss, deterministic and conditional finite-law core)"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.deterministic_inversion_welfare_loss_le and deterministic_welfare_loss_nonnegative prove the adjacent-sort inequality for arbitrary lists; exponentialRacePairLaw and exponentialRace_pair_inversion_probability construct the actual two-clock law and derive its sigmoid inversion probability; finiteRanking_exponentialRace_expected_welfare_loss_le_choose_two and permutationLaw_generalTopK_welfare_loss_bounds prove the expectation and n-choose-2 chain. Scope boundary: the file does not yet construct from n independent exponential clocks the global FiniteLaw on permutations; the final theorem therefore takes the exact inversion decomposition and PL pairwise marginal identities as explicit structural premises. Those premises are the missing representation layer, not the inequality or probability algebra. Full-file diagnostics and lean_verify source scans were clean; only standard axioms. Ledger: smoothing_cliff_general_welfareloss_core_lean_20260813."
+
+[nodes.L_welfareloss]
+fingerprint = "sha256:3af94ec9a850"
+kind = "lemma"
+statement = "For general top-K PL, the welfare loss is bounded by the weighted sum of inverted pair gaps, hence by binom(n,2) bar_delta_w tau/e; for K=1 it sharpens to (n-1)w1 tau/e."
+depends_on = ["A_pl_process", "L_welfareloss_one_slot", "L_welfareloss_general_core"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:2079 (lem:welfareloss)"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.plPermutationMass and plPermutationLaw construct the normalized recursive Plackett-Luce law on actual finite permutations; plPermutationLaw_pair_before_probability derives every pair marginal from that global law; inversionGap_permutation_eq_canonicalPair_sum proves the exact canonical unordered-pair decomposition with card n.choose 2; shiftedExponential_PL_generalTopK_welfare_loss_bounds_complete gives the nonnegative, pairwise-sigmoid, and binomial tau/e bounds without external representation premises or a no-ties assumption. The K=1 sharpening is supplied by L_welfareloss_one_slot. Full-file diagnostics and lean_verify source scans were clean; only standard axioms. Ledger: smoothing_cliff_general_welfareloss_complete_lean_20260813."
+
+[nodes.T_pos]
+fingerprint = "sha256:336a900cded3"
+kind = "theorem"
+statement = "The one-slot minimax welfare loss has the stated finite-n lower bound, water-filling is a certified matching rule with worst-case loss at most w1^2/(4S), and matched-certificate PL has the stated logarithmic premium."
+depends_on = ["A_frontier_rule", "P_squeeze", "L_water_filling_certificate", "C_tight_K1", "L_pl_log_premium"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:264 (thm:pos)"
+notes = "Lean 4.30.0: SmoothingCliff.Frontier.minimax_welfare_lower_bound_certificate and waterFillingRule_welfare_loss_le give the universal finite-n lower certificate and the matching water-filling upper certificate; SmoothingCliff.Racing.arbitraryProfile_matched_PL_premium_le transports the exact one-leader PL estimate through Option {i // i != top} ~= iota and proves the stated premium for every finite profile with a chosen maximum; matched_tiedLogTrailers_PLWelfare_premium_eq supplies the exact logarithmic witness. The paper's outer infimum/supremum notation is not separately defined, but the quantified lower bound for every admissible rule, the explicit matching rule, and the universal profile upper bound establish its mathematical content. Full-file diagnostics and lean_verify source scans were clean; only standard axioms. Ledger: smoothing_cliff_pos_lean_20260813."
+
+[nodes.L_water_filling_certificate]
+fingerprint = "sha256:a123ddc0f2f0"
+kind = "lemma"
+statement = "For every finite nonempty one-slot population and positive sensitivity, the canonical water-filling threshold exists and is allocation-unique; its winner-lottery rule is anonymous, own- and cross-monotone, own-S-Lipschitz, feasible and no-waste, has pointwise welfare loss at most w1^2/(4S), and every admissible rule has the stated finite-n adversarial lower certificate."
+depends_on = ["A_frontier_domain", "A_frontier_rule"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:264-287 (thm:pos(i)-(ii))"
+notes = "Lean 4.30.0: SmoothingCliff.Frontier.exists_waterFillingThreshold, waterFillAt_eq_of_thresholds, waterFillingRule_membership, waterFillingRule_winnerLottery, minimax_welfare_lower_bound_certificate, and waterFillingRule_welfare_loss_le. The lower certificate is quantified over every admissible finite rule; the upper theorem is pointwise for the constructed water-filling rule. The paper's inf/sup notation is not separately wrapped, and thm:pos(iii)'s PL logarithmic premium remains outside this credential. Full-file diagnostics and lean_verify source scans were clean; only standard axioms. Ledger: smoothing_cliff_water_filling_lean_20260813."
+
+[nodes.L_pl_log_premium]
+fingerprint = "sha256:8f0ce5a4fecd"
+kind = "lemma"
+statement = "For a finite one-leader one-slot PL profile with any finite family of nonnegative leader-trailer gaps, the exact welfare loss is w1*tau times the normalized sum of u exp(-u); it is at most 2*w1*tau*max{1,log m}, hence at matched temperature at most w1^2/(2S)*max{1,log m}, while m tied trailers at gap tau log m attain w1^2 log m/(8S)."
+depends_on = ["C_tight_K1", "L_welfareloss_one_slot"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:282-290 and 1748-1770 (thm:pos(iii))"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.oneLeaderPLProbability_leader, oneLeaderPLProbability_trailer, oneLeaderPLWelfare_premium_eq, normalizedPLLogPremium_le, oneLeaderPLWelfare_premium_le_paper, matched_oneLeaderPLWelfare_premium_le, and matched_tiedLogTrailers_PLWelfare_premium_eq. The definitions call the existing raw finite oneSlotPLProbability, so the PL probability law is not assumed. The normalized analytic theorem actually proves the stronger factor-one bound before deriving the paper's factor-two display. SmoothingCliff.Racing.arbitraryProfile_matched_PL_premium_le now supplies the finite maximizer/reindexing wrapper used by T_pos; only the outer sSup notation itself is not packaged. Full-file diagnostics and lean_verify source scans were clean; only standard axioms. Ledger: smoothing_cliff_pl_log_premium_lean_20260813 and smoothing_cliff_pos_lean_20260813."
+
+[nodes.P_sp_mixed]
+fingerprint = "sha256:f839a796e262"
+kind = "proposition"
+statement = "For cheap strict-priority racing technology, the displayed lattice mixed strategy is an equilibrium with the stated support, payoffs, and dissipation."
+depends_on = ["A_strict_priority_race", "P_sp_race_pure"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:2018 (prop:sp_mixed)"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.latticeMass and LatticeProbabilityLaw define the displayed finite law; latticeExpectedStrictPriorityPayoff is the literal finite expectation of the imported strictPriorityPayoff. floorLattice_equilibrium_and_dissipation_package proves legality, nonpositive payoff for every nonnegative real pure deviation, zero payoff at every support point and for the mixture, symmetric mixed Nash, the exact mean action and dissipation formula, both displayed bounds, and equality of allocated contested surplus and dissipation. floorLatticeExpectedDissipationAtCost_eq_lower_of_integer_ratio, half_contestedPrize_lt_floorLatticeExpectedDissipationAtCost, and floorLatticeExpectedDissipationAtCost_tendsto_fullPrize prove the integer equality, strict half-prize clause, and kappa-to-zero limit. Pure-deviation optimality is the standard mixed best-response criterion; lattice_finiteMixedDeviationAtCost_nonpos additionally proves every finite mixed deviation. Scope boundary: this does not classify arbitrary Borel mixed equilibria, which belongs to prop:sp_allequilibria rather than this existence proposition. Full-file diagnostics and lean_verify source scans were clean; only standard axioms. Ledger: smoothing_cliff_sp_mixed_lean_20260813."
+
+[nodes.L_zeropayoff_floor]
+fingerprint = "sha256:ea055d010566"
+kind = "lemma"
+statement = "When both payoffs vanish in the strict-priority race, each player's lattice deviation bound applies in both directions, so the two mean actions together are at least twice the lattice bound and total dissipation is at least the cost of that."
+depends_on = ["L_sp_borel_payoff_core"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:sp_allequilibria (ii))"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.latticeMeanActionBound, zeroPayoff_meanAction_sum_lower_bound, zeroPayoff_dissipation_lower_bound, and two_mul_latticeMeanActionBound_eq in Racing/ZeroPayoffFloor.lean. The Borel core already bounded one player's opponent mean action from a zero payoff by summing the lattice deviation inequalities; this combines the two directions, which is what part (ii) asserts. The last lemma puts twice the bound in the paper's normalized shape, gap times depth times two minus ratio times depth plus one, which at the lattice depth is the displayed expression. Full-file diagnostics: no findings; lean_verify scan_source=true: no warnings, axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_zeropayoff_floor_lean_20260813."
+
+[nodes.L_payoff_identity]
+fingerprint = "sha256:94db4f1e7aa5"
+kind = "lemma"
+statement = "Exactly one player captures band and the amount is the winning margin capped at the contested band, so the two captured amounts sum to the capped absolute difference and the two expected payoffs sum to the allocated contested surplus minus the dissipation."
+depends_on = ["A_strict_priority_race"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:sp_mixed and prop:sp_allequilibria, payoff identity)"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.strictPriorityCapturedGap_add_symm, min_abs_le_gap, borelExpectedCapturedGap_add_symm, and borelExpectedPayoff_add_symm in Racing/PayoffIdentity.lean. The pointwise step is a two-case comparison; the expectation step swaps the product measure so both captured amounts are integrated against the same law, then adds. This is the identity the paper uses to read dissipation off the payoffs, in the lattice equilibrium and again in the classification of the whole equilibrium set, and it needs none of the support analysis the positive-payoff classification requires. Integrability of each captured amount on the product is taken as a hypothesis. Full-file diagnostics: no findings; lean_verify scan_source=true: no warnings, axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_payoff_identity_lean_20260813."
+
+[nodes.L_layer_cake]
+fingerprint = "sha256:b8f690824a16"
+kind = "lemma"
+statement = "The captured band equals the size of the set of levels the winning margin clears within the contested band."
+depends_on = ["A_strict_priority_race"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:sp_allequilibria (iii), layer-cake entry point)"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.levelSet_subset_singleton, levelSet_eq_Icc, and strictPriorityCapturedGap_eq_measureReal in Racing/LayerCake.lean. This is the identity behind the paper's display writing the expected captured band as an integral of the opponent's distribution function over one contested band, from which the support recursion of part (iii) reads off its derivative. Stating it as a measure rather than an interval integral keeps the proof to two set identities; an interval-integral formulation was attempted first and abandoned because of API friction with uIoc and indicator integrals. TWO FURTHER LINKS ARE NOW IN THE SAME FILE: the captured band as an integral of an indicator over the levels (strictPriorityCapturedGap_eq_integral_indicator), and the joint level set as a measurable half-space for the sum together with the uncurrying identity (measurableSet_jointLevelSet, indicator_uncurry_eq), which are exactly the inputs Tonelli needs. The remaining step of this link is the exchange itself, integral_integral_swap against the opponent law, whose integrability follows from the indicator being bounded by one on two finite measures. Full-file diagnostics: no findings; lean_verify scan_source=true: no warnings, axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_layer_cake_lean_20260813."
+
+[nodes.P_sp_allequilibria]
+fingerprint = "sha256:8ab2e1c8b207"
+depends_on = ["P_sp_mixed", "P_sp_race_pure", "L_sp_borel_payoff_core", "L_zeropayoff_floor", "L_payoff_identity", "L_layer_cake"]
+kind = "proposition"
+statement = "All pure and mixed equilibria of the strict-priority race have the stated payoff classification, lattice supports, and selection-free dissipation bounds."
+location = "Smoothing_the_Cliff_ITCS.tex:2041 (prop:sp_allequilibria)"
+notes = "Credentialed 2026-08-14. Part (i) is L_sp_borel_payoff_core; part (ii) is L_zeropayoff_floor. PART (iii) FORWARD: Racing/NextSupport.lean positive_payoff_classification_unconditional, with no hypothesis, says every positive-payoff equilibrium has a constructed last rung and falls into one of the two terminal cases; in the first the cost ratio lies in the window 1/(2 nu) <= q < 1/(2 nu - 1), the supports are exactly the odd and the even lattice, the payoff is w1 G (1 - (2 nu - 1) q) and the dissipation (2 nu - 1) q w1 G; in the second the cost ratio equals 1/(2 nu). PART (iii) CONVERSE: Racing/PositiveProfile.lean positiveProfile_equilibrium and boundaryProfile_equilibrium check that the displayed profiles are equilibria, on the open window and on the lower boundary respectively, with deviations quantified over every nonnegative real action. The converse uses the finite mass-function interface of prop:sp_mixed rather than the Borel-measure interface, which is the same pairing the existence proposition uses. PART (iv) is P_sp_floor. The scope boundary is that the converse is stated on the finite mass functions and the forward direction on Borel mixed strategies; the two are not identified inside Lean, so the converse certifies the displayed profiles as equilibria of the finite-deviation game rather than as Borel laws."
+verified = ["lean"]
+
+[nodes.L_sp_borel_payoff_core]
+fingerprint = "sha256:4d9a2070f336"
+kind = "lemma"
+statement = "For genuine Borel probability mixed strategies with finite first moments in the strict-priority race, expected payoff equals the integral of pure-deviation payoff; every mixed Nash payoff is nonnegative and at least one player's payoff is zero, symmetric equilibria give both zero, and lattice pure deviations imply the stated one-sided opponent mean-action lower bound for a zero-payoff player."
+depends_on = ["A_strict_priority_race"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:1146-1235 and 2031-2047 (prop:sp_allequilibria, Borel payoff core)"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.borelExpectedPayoff_eq_integral_pure, borelMixedNash_payoff_classification, borelSymmetricMixedNash_payoff_eq_zero, depth_mul_gap_sub_meanAction_le_sum_pureCaptured, and zeroPayoff_opponent_meanAction_lower_bound. Strategies are actual ProbabilityMeasure NNReal objects with finite first moments, and the payoff identity uses Fubini. Full-file diagnostics were clean after deprecation/linter cleanup; lean_verify source scans used only standard axioms. Scope boundary: this does not prove the positive-payoff support classification or the universal dissipation floor. Ledger: smoothing_cliff_sp_borel_payoff_core_lean_20260813."
+
+[nodes.R_rentcap]
+fingerprint = "sha256:73021f0787df"
+kind = "proposition"
+statement = "In every positive-payoff equilibrium of the strict-priority race the advantaged player's payoff is at most one contested band's cost, by an argument that uses neither the lattice nor the window: the support is bounded because an action costing more than the whole prize is dominated, so it has a largest element, above which the opponent's distribution function is already one and its deviation captures the entire contested band."
+depends_on = ["L_sp_borel_payoff_core", "L_payoff_identity"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:2062 (rem:rentcap)"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.support_bddAbove, BorelMixedStrategy.upperSupport, upperSupport_mem_support, le_upperSupport and positive_payoff_le_cost_band_of_support in Racing/SupportBound.lean. The remark's own route is the one formalized: the support is closed and bounded by support_action_cost_le_prize, so it has a largest action; above that action the opponent's distribution function is already one, so the deviation one band further captures the whole band and being unprofitable prices the largest action from below, while the player's own indifference prices the payoff from above, and the two bounds meet at one band's cost. The node was added on 2026-08-14 after a coverage check found the label carried by no node; the content was already credentialed under the ledger entry below, which the classification development uses to subsume the ladder-based caps. Ledger: smoothing_cliff_unconditional_payoff_cap_lean_20260814."
+
+[nodes.L_universal_onesided_floor]
+fingerprint = "sha256:fd64a2f362cd"
+kind = "lemma"
+statement = "Every Nash equilibrium of the strict-priority race, pure or mixed, has total mean action and hence dissipation at least the lattice bound, with no appeal to the positive-payoff window classification."
+depends_on = ["L_sp_borel_payoff_core", "L_zeropayoff_floor"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:sp_floor, selection-free floor at half the constant)"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.nash_meanAction_sum_lower_bound and nash_dissipation_lower_bound in Racing/ZeroPayoffFloor.lean. Part (i) gives that at least one payoff vanishes, the lattice deviation bound turns a zero payoff into a lower bound on the OPPONENT's mean action, and the remaining mean action is discarded as nonnegative. The result is selection-free, which is the property prop:sp_floor is about. THE CONSTANT IS HALF the paper's, which combines both directions; recovering the full constant at a positive-payoff equilibrium requires pinning the advantaged player's payoff, which is exactly what part (iii) of prop:sp_allequilibria supplies. So this does not credential P_sp_floor, but it does establish that a selection-free floor exists without the window classification. Full-file diagnostics: no findings; lean_verify scan_source=true: no warnings, axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_universal_onesided_floor_lean_20260813."
+
+[nodes.P_sp_floor]
+fingerprint = "sha256:30d2617f7808"
+depends_on = ["P_sp_allequilibria", "L_universal_onesided_floor"]
+kind = "proposition"
+statement = "Every pure or mixed strict-priority racing equilibrium dissipates at least (w1-kappa)(v-r), with equality attainable and convergence to the full contested prize as kappa tends to zero."
+location = "Smoothing_the_Cliff_ITCS.tex:351 (prop:sp_floor)"
+notes = "Credentialed 2026-08-14 at the paper full constant. Racing/BoundaryFloor.lean nash_dissipation_ge_prize_net_cost: every Nash equilibrium, pure or mixed, dissipates at least the whole contested prize net of one band cost. Three branches. Both payoffs zero: the lattice deviation bound in both directions, lifted by the arithmetic of part (iv) at the integer part of the reciprocal cost ratio. One payoff positive, first terminal case: the closed-form dissipation of the classification. One payoff positive, boundary case: the extra atom still sits on the even lattice, so the gaps are still odd and the capped absolute difference still saturates, and the payoff identity combines with the unconditional payoff cap positive_payoff_le_cost_band_of_support. The earlier half-constant selection-free floor in L_universal_onesided_floor is subsumed."
+verified = ["lean"]
+
+[nodes.P_sp_race]
+kind = "proposition"
+statement = "The five cost regimes give the paper's full pure/mixed equilibrium classification for the two-agent common-value strict-priority race."
+depends_on = ["P_sp_race_pure", "P_sp_mixed"]
+location = "Smoothing_the_Cliff_ITCS.tex:2244 (prop:sp_race)"
+notes = "SCOPE LIMIT (author decision 2026-08-13): clause (v), existence of a mixed equilibrium, is deliberately not pursued. Mixed strategies here live on a continuum action set, so the strategy space is infinite dimensional and Econlib kakutaniFixedPoint, which is stated for finite-dimensional normed spaces, does not apply. The needed Kakutani-Fan-Glicksberg theorem for locally convex spaces exists in neither Mathlib nor Econlib. The pure-strategy classification is credentialed by P_sp_race_pure."
+
+[nodes.L_concave_game_existence]
+fingerprint = "sha256:37e2ffb65ab3"
+kind = "lemma"
+statement = "A game with finitely many players, compact convex strategy slices in finite-dimensional normed spaces, continuous payoffs, and own-strategy quasiconcavity has a pure-strategy Nash equilibrium."
+depends_on = []
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:rentdissipation (ii), the Debreu-Glicksberg-Fan input)"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.ConcaveNashExistenceData and its exists_equilibrium in Racing/ConcaveGameExistence.lean. Mathlib has no Brouwer or Kakutani fixed point theorem at all, and Econlib's NashExistenceData requires the payoff to be affine in the own strategy, which is the mixed-extension setting of Nash 1951 rather than a concave game on a real action set. The derivation here follows Econlib's and reuses its kakutaniFixedPoint and its argmax machinery unchanged; affineness is used there only to make the per-player argmax convex, and quasiconcavity does the same job, so exactly that is asked for and nothing else. Since affine implies concave implies quasiconcave the result strictly generalizes Econlib's. This is the second file in the project to depend on Econlib, after Mechanism/Payments.lean. Full-file diagnostics: no findings; lean_verify scan_source=true: no warnings, axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_concave_game_existence_lean_20260813."
+
+[nodes.L_race_equilibrium]
+fingerprint = "sha256:f5b3dfa447fb"
+kind = "lemma"
+statement = "The allocation spread grows at most at the certified rate, so under a curvature condition on marginal cost the marginal utility of advantage is strictly decreasing; and a game on compact action intervals with continuous payoffs concave in the own action has a pure-strategy Nash equilibrium."
+depends_on = ["L_concave_game_existence", "L_spread_decay"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:rentdissipation (ii))"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.spread_growth_le, advantageUtility_marginal_strictAnti, raceSlice and its convexity/compactness/nonemptiness, raceGameData, and exists_race_equilibrium in Racing/RaceEquilibrium.lean. TWO DEVIATIONS FROM THE PAPER, both weakenings. First, the curvature condition is stated one derivative lower: the paper assumes the cost twice differentiable with inf c-double-prime above the cap, while what the argument uses is that marginal cost grows at least at the cap rate, which every such cost satisfies. Second, no differentiability of the allocation is needed at all, because the spread growth bound comes from monotonicity at the lower endpoint and the Lipschitz certificate at the upper one. Full-file diagnostics: no findings; lean_verify scan_source=true: no warnings, axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_race_equilibrium_lean_20260813."
+
+[nodes.L_race_profile_game]
+fingerprint = "sha256:f3d0a26b532e"
+kind = "lemma"
+statement = "With an own-blind response family the racing payoff is a genuine function of the action profile, is concave in the own action under the certificate and the curvature condition, and the race on a compact action box therefore has a pure-strategy Nash equilibrium."
+depends_on = ["L_race_equilibrium", "L_spread"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:rentdissipation (ii))"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.raceProfilePayoff, OwnBlind, raceProfilePayoff_concave_in_own, and exists_raceProfile_equilibrium in Racing/RaceProfileGame.lean. This closes the signature gap between the two halves of the racing development: Spread.lean and RentDissipation.lean hold opponents fixed inside a response function, which is what makes the best-response statements uniform over opponents, while the existence result needs a payoff on a genuine profile. OwnBlind, the requirement that the response family ignore the own coordinate, is exactly what makes the payoff concave in the own action: raising the own advantage moves the argument of the allocation but not the allocation itself. Full-file diagnostics: no findings; lean_verify scan_source=true: no warnings, axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_race_profile_game_lean_20260813."
+
+[nodes.P_rentdissipation]
+fingerprint = "sha256:fbda2755f6cd"
+kind = "proposition"
+statement = "Under PL, positive best responses obey the spread-based bound and best responses against a fixed opponent profile are bounded with no growth hypothesis; under unbounded marginal cost the bound is uniform, dissipation vanishes as tau grows with the quadratic bound, a pure equilibrium exists under the curvature condition, and the stated threshold makes zero investment uniquely rationalizable."
+depends_on = ["L_rentdissipation_core", "L_spread_decay", "L_concave_game_existence", "L_race_equilibrium", "L_race_profile_game"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:rentdissipation)"
+notes = "All three clauses are credentialed after the 2026-08-13 repair. Clause (i): the paper text was repaired because the earlier statement defined an action bound as a real supremum that the stated hypotheses do not make finite, refuted in Lean by the smooth cost a plus exp of minus a minus one; the repaired clause separates a hypothesis-free pointwise bound from a quantitative bound carrying the explicit unbounded-marginal-cost hypothesis, and L_spread_decay certifies both the repair and the necessity of that hypothesis. Clause (ii): L_concave_game_existence supplies Debreu-Glicksberg-Fan existence, built here because Mathlib has no Kakutani and Econlib's Nash wrapper demands an affine own-strategy payoff; L_race_equilibrium instantiates the racing shape and L_race_profile_game closes the signature gap to a genuine profile payoff. Two deviations from the paper in that chain are both weakenings: the curvature condition is stated one derivative lower, and no differentiability of the allocation is used. Clause (iii): L_rentdissipation_core."
+
+[nodes.L_rentdissipation_core]
+fingerprint = "sha256:f968dbfe01ca"
+kind = "lemma"
+statement = "Uniformly over fixed opponent profiles, every positive best response has marginal cost at most (v-r)S; any explicit finite marginal-cost escape bound controls every best response and total cost, quadratic costs give the displayed O(S^2) bound, and under strict convexity the no-race threshold makes zero the unique best response."
+depends_on = ["L_spread", "T_stability"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:2250-2271 (prop:rentdissipation(i),(iii), analytic best-response core)"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.positive_bestResponse_marginalCost_le, bestResponse_le_of_marginalCost_gt_threshold, sum_bestResponse_cost_le_of_bounds, bestResponse_iff_zero_of_threshold, pl_bestResponse_iff_zero_of_temperature_ge, quadratic_bestResponse_action_le, quadratic_bestResponse_cost_le, and sum_quadratic_bestResponse_cost_le. Scope boundaries: the formal generic bound uses an explicit finite escape bound, because strict convexity alone does not imply the paper's derivative sublevel supremum is finite; pure-Nash existence under the curvature condition needs continuous-game fixed-point infrastructure and remains outside this credential. Full-file diagnostics and lean_verify source scans were clean; only standard axioms. Ledger: smoothing_cliff_rentdissipation_core_lean_20260813."
+
+[nodes.L_netsurplus_core]
+fingerprint = "sha256:f44491dda3c2"
+kind = "lemma"
+statement = "For the two-bidder heterogeneous-value race, the displayed strict-priority profile is a pure equilibrium, every pure equilibrium obeys the paper's dissipation and net-surplus bounds, and throughout the closed certificate-temperature region positive PL investment is strictly dominated by zero, the zero-investment PL outcome has the exact logistic net-surplus formula, strictly dominates every pure strict-priority outcome under the contested-gap hypothesis, converges to the uniform lottery, and is strictly decreasing in temperature."
+depends_on = ["P_sp_race_pure", "C_tight_K1", "L_welfareloss_one_slot", "L_rentdissipation_core"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:2083-2110 (prop:netsurplus(i)-(iv), certified-region and pure-equilibrium core)"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.heterogeneous_strictPriority_equilibrium, heterogeneous_pureNash_dissipation_ge, heterogeneous_pureNash_netSurplus_le, twoBidderPL_positiveAction_strictlyDominatedByZero, twoBidderPL_pureNash_iff_zero_at_certificate, zeroInvestmentPLNetSurplus_eq, zeroInvestmentPLNetSurplus_tendsto_uniformLottery, zeroInvestmentPL_dominance_chain, certifiedPL_unique_equilibrium_and_dominance, certificate_boundary_beats_strictPriority_and_uniform, and certificateTemperature_unique_max_on_certifiedRegion. The formal game quantifies over every nonnegative real deviation, and strict dominance is uniform in the opponent score. Scope boundary: the paper defines the objective below the certificate as a supremum over investment-game equilibria; existence/selection for that region is not constructed, so the unconditional global-maximizer clause remains outside this credential. Full-file diagnostics and lean_verify source scans were clean; only standard axioms. Ledger: smoothing_cliff_netsurplus_core_lean_20260813."
+
+[nodes.P_netsurplus]
+fingerprint = "sha256:ad150b2adbb4"
+kind = "proposition"
+statement = "In the two-agent heterogeneous-value race, strict-priority pure equilibria dissipate the stated amount, certified PL temperatures switch off investment, and under the stated gap conditions PL dominates and has an interior finite optimum."
+depends_on = ["P_sp_race_pure", "L_netsurplus_core", "P_rentdissipation"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:netsurplus)"
+notes = "All four clauses are credentialed. Clause (i): heterogeneous_strictPriority_equilibrium, heterogeneous_pureNash_dissipation_ge and heterogeneous_pureNash_netSurplus_le. Clause (ii): twoBidderPL_pureNash_iff_zero_at_certificate and zeroInvestmentPLNetSurplus_eq. Clause (iii): zeroInvestmentPL_dominance_chain and certifiedPL_unique_equilibrium_and_dominance. Clause (iv): zeroInvestmentPLNetSurplus_strictAntiOn, certificate_boundary_beats_strictPriority_and_uniform, certificateTemperature_unique_max_on_certifiedRegion and global_maximizer_le_certificateTemperature, the last two individually re-verified on 2026-08-13. DEPENDENCY CORRECTED: the node previously listed P_sp_race, whose mixed-existence clause is scope-limited, but the proposition quantifies only over PURE strict-priority equilibria, so P_sp_race_pure is what it needs; the paper says as much, noting that the maintained cost interval is the pure-equilibrium region and that cheaper technology is covered by prop:sp_mixed and prop:sp_allequilibria instead. SCOPE OF CLAUSE (iv): the paper defines the objective below the certificate as a supremum over equilibria of the tau-race, and global_maximizer_le_certificateTemperature delivers the claim in the objective-agnostic form, that any objective agreeing with the certified closed form above tau-dagger has every global maximizer at or below tau-dagger. Non-emptiness of the equilibrium set below the certificate is neither used nor asserted, which matches the paper: with the linear latency cost of this proposition the curvature condition of prop:rentdissipation (ii) never holds, so no existence statement is available there and none is needed."
+
+[nodes.L_exact_threshold_closed_form]
+fingerprint = "sha256:ee6b775b7ecf"
+kind = "lemma"
+statement = "For the two-bidder logistic race, the feasible pointwise marginal-value window has supremum 2 sigma(d/(2 tau))-1 at an explicit feasible center; its weighted value is at most cost iff tau is at least tau-circle, with tau-circle positive, strictly below tau-dagger, increasing in the contested band and slot weight, decreasing in cost, and with the stated strictly decreasing threshold ratio and endpoint limits."
+depends_on = ["L_netsurplus_core"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:2116-2149 (prop:exact_threshold(ii)-(iii), pointwise certificate core)"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.feasibleMarginalWindow_isGreatest constructs the genuine feasible maximizer rather than assuming a supremum; pointwiseMarginalValue_le_cost_iff proves the exact threshold iff; tauCircle_pos, tauCircle_lt_tauDagger, tauCircle_div_tauDagger, thresholdRatio_strictAnti, thresholdRatio_tendsto_one, thresholdRatio_tendsto_zero, tauCircle_strictMono_contestedBand, tauCircle_strictMono_slotWeight, and tauCircle_strictAnti_cost prove the displayed comparisons and limits. RunUpAverage.lean now supplies the previously missing exact integral-average branch and equality classification used by P_exact_threshold. Full-file diagnostics and lean_verify source scans were clean; only standard axioms. Ledgers: smoothing_cliff_exact_threshold_closed_form_lean_20260813 and smoothing_cliff_exact_threshold_runup_lean_20260813."
+
+[nodes.P_exact_threshold]
+fingerprint = "sha256:20a7bf315c6a"
+kind = "proposition"
+statement = "The run-up average gives the exact dominance test, the logarithmic tau-circle is a closed-form sufficient threshold with the stated comparative statics, and it sharpens the net-surplus guarantees."
+depends_on = ["P_netsurplus", "L_exact_threshold_closed_form"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:2131 (prop:exact_threshold)"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.zeroRunUpWeaklyDominates_iff_runUpMaximum and bothPlayersZeroWeaklyDominate_iff prove the exact two-branch run-up-average dominance criterion; existsUnique_boundaryRunUpAverage_maximizer proves the second branch has a unique attained optimizer characterized by endpoint=average; feasibleRunUpSupremum_eq_center_of_two_mul_le and firstBranch_equality_gives_strict_dominance prove the first branch is approached only as investment tends to zero and equality still strictly dominates; attainedBoundaryMaximum_ties_at_equality proves the second-branch equality tie. firstBranch_runUpMaximum_le_cost_iff_tauCircle connects the closed form, while L_exact_threshold_closed_form supplies comparative statics and tauCircle<tauDagger. Full-file diagnostics and lean_verify source scans were clean; only standard axioms. Ledger: smoothing_cliff_exact_threshold_runup_lean_20260813."
+
+[nodes.C_neartie_dominance]
+fingerprint = "sha256:396f15b73577"
+kind = "corollary"
+statement = "At a value tie, every tau at or above tau-circle eliminates PL racing without allocative loss and beats every strict-priority equilibrium by at least (w1-kappa)(v-r)."
+depends_on = ["P_exact_threshold", "P_sp_allequilibria"]
+location = "Smoothing_the_Cliff_ITCS.tex:2168 (cor:neartie_dominance)"
+notes = "Credentialed 2026-08-14. Racing/NearTieDominance.lean zeroInvestmentPLNetSurplus_at_tie shows the smoothed rule loses no allocative welfare at a value tie, neartie_dominance gives the gap at least the prize net of one band cost against every equilibrium of the race, and neartie_dominance_pos gives strict positivity when the racing technology is cheaper than the slot. The no-race clause, that zero investment is the unique rationalizable profile above the closed-form threshold, is P_exact_threshold."
+verified = ["lean"]
+
+[nodes.L_spread_decay]
+fingerprint = "sha256:5f11096e4472"
+kind = "lemma"
+statement = "A monotone interim allocation bounded by the top prize has vanishing endpoint spread as advantage grows, which bounds every nonnegative best response against a fixed opponent profile with no hypothesis on the growth of marginal cost; no such bound is uniform over opponent profiles."
+depends_on = ["A_strict_priority_race"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:2250 (prop:rentdissipation (i), repair scope)"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.allocationSpread_tendsto_zero, exists_spread_lt_marginalCost_bound, bestResponse_le_of_spread_lt_marginalCost, and no_uniform_escape_level in Racing/SpreadDecay.lean. Full-file Lean-LSP diagnostics returned no findings; lean_verify scan_source=true on the four load-bearing targets returned no warnings and only propext/Classical.choice/Quot.sound. This node certifies the SCOPE of the repair to P_rentdissipation, not P_rentdissipation itself: the pointwise half is hypothesis-free, the uniform half is refuted. Ledger: smoothing_cliff_spread_decay_and_no_uniform_escape_lean_20260813."
+
+[nodes.L_netsurplus_n_certificate]
+fingerprint = "sha256:f53102a63e77"
+kind = "lemma"
+statement = "Above the general-n certificate temperature every agent's unique best response is zero investment, uniformly over opponents, so a race profile is Nash exactly when every coordinate is zero; and a strict-priority outcome burning more than the certified smoothing shortfall is strictly dominated, with the shortfall at the certificate equal to the paper's displayed pairs times barDrop times w1 over e squared times the maximum premium-to-entry-cost ratio."
+depends_on = ["L_rentdissipation_core"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:netsurplus_n, certificate and dominance clauses)"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.generalCertificateTemperature, agent_threshold_of_generalCertificate, RaceProfileNash, generalCertificate_raceNash_iff_zero, strictPriority_dominated_of_dissipation_gt_loss, and generalCertificate_shortfall_eq in Racing/NetSurplusGeneralN.lean. Opponents are held fixed inside each agent's response function, the convention of RentDissipation.lean; because the best-response characterization is uniform over admissible response functions, the profile statement is the genuine game-theoretic one. Full-file diagnostics: no findings; lean_verify scan_source=true: no warnings, axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_netsurplus_n_certificate_lean_20260813."
+
+[nodes.L_temperature_monotone]
+fingerprint = "sha256:b0bc4fbf7fbe"
+kind = "lemma"
+statement = "With one slot the reserve cancels from every allocation share, expected welfare per unit of slot weight is the softmax mean of values at inverse temperature, its derivative in the inverse temperature is the softmax variance and is nonnegative by Cauchy-Schwarz, so welfare is nondecreasing in the inverse temperature and nonincreasing in the temperature on the positive temperatures."
+depends_on = []
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:netsurplus_n, K=1 monotonicity clause)"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.reserveAdjusted_share_eq_softmax_share, hasDerivAt_softmaxPartition, hasDerivAt_softmaxFirstMoment, hasDerivAt_softmaxMean, softmaxFirstMoment_sq_le, softmaxVariance_nonneg, softmaxMean_monotone, and softmaxMean_inverse_antitoneOn in Racing/TemperatureMonotone.lean. The variance identity is the quotient rule on the softmax moments and nonnegativity is Finset.sum_sq_le_sum_mul_sum_of_sq_le_mul. Full-file diagnostics: no findings; lean_verify scan_source=true: no warnings, axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_temperature_monotone_lean_20260813."
+
+[nodes.L_interim_bridge]
+fingerprint = "sha256:fb4128b10f07"
+kind = "lemma"
+statement = "Under any finite ranking law, expected realized welfare equals the sum over agents of value times the agent's expected slot weight, and those interim allocations are nonnegative, bounded by the top weight, and sum to the total slot weight independently of the law."
+depends_on = ["A_pl_process"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (shared interface, no single paper statement)"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.rankingWelfareFrom_ofFn, rankingWelfare_ofFn, rankingWelfare_permutation_eq_agentSum, rankingInterimPriority, finiteExpectation_rankingWelfare_eq_interimWelfare, rankingInterimPriority_nonneg, rankingInterimPriority_le, and sum_rankingInterimPriority in Racing/InterimBridge.lean. This is the shared representation the project lacked: the welfare development states everything over FiniteLaw of permutations and realized ranking welfare, the racing development states everything over interim expected priority weight, and nothing connected them. The proof is a finite Fubini exchange plus reindexing of positions by the inverse permutation. Full-file diagnostics: no findings; lean_verify scan_source=true: no warnings, axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_interim_bridge_lean_20260813."
+
+[nodes.L_netsurplus_n_composed]
+fingerprint = "sha256:3063d8745eb9"
+kind = "lemma"
+statement = "At the genuine Plackett-Luce law the certified smoothing shortfall bounds the gap between strict-priority welfare and the interim allocative welfare, and a strict-priority racing outcome burning more than that shortfall is strictly dominated."
+depends_on = ["L_interim_bridge", "L_welfareloss", "L_netsurplus_n_certificate"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:netsurplus_n, dominance clause end to end)"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.interimWelfare_shortfall_le, generalCertificate_netSurplus_dominates_strictPriority, plLaw_interimWelfare_shortfall_le, and plLaw_netSurplus_dominates_strictPriority in Racing/NetSurplusGeneralN.lean. The last two instantiate the general ranking-law statement at plPermutationLaw with shiftedExponentialRate, so the conclusion is about the actual exponential-score rule rather than an abstract law. Full-file diagnostics: no findings; lean_verify scan_source=true: no warnings, axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_netsurplus_n_composed_lean_20260813."
+
+[nodes.L_oneslot_interim]
+fingerprint = "sha256:7b102bb7d41a"
+kind = "lemma"
+statement = "Under the recursive Plackett-Luce mass the probability that an agent ranks first is her rate share; hence at a one-slot weight profile the interim allocation is the top weight times that share, one-slot interim welfare is the top weight times the softmax mean, and it is nonincreasing in the temperature on the positive temperatures."
+depends_on = ["L_interim_bridge", "L_temperature_monotone"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:netsurplus_n, K=1 clause in interim form)"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.plPermutationMass_first_eq, oneSlotWeight, rankingInterimPriority_oneSlot, plLaw_rankingInterimPriority_oneSlot, plLaw_oneSlot_interimWelfare_eq, and plLaw_oneSlot_interimWelfare_antitoneOn in Racing/OneSlotInterim.lean. The first-rank probability is read off the first step of the plPermutationMass recursion by reindexing with Equiv.Perm.decomposeFin, the same device used for the mass normalization. This closes the last seam of prop:netsurplus_n: the temperature monotonicity, previously proved only over the softmax representation, is now stated over the same interim allocations as every other clause. Full-file diagnostics: no findings; lean_verify scan_source=true: no warnings, axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_oneslot_interim_lean_20260813."
+
+[nodes.P_netsurplus_n]
+fingerprint = "sha256:c68f9fbfd703"
+kind = "proposition"
+statement = "For general n, the certificate threshold eliminates PL investment, yields the stated welfare/net-surplus bound and sufficient dominance condition, with the one-slot monotonicity-in-temperature conclusion."
+depends_on = ["P_rentdissipation", "L_welfareloss", "L_netsurplus_n_certificate", "L_temperature_monotone", "L_interim_bridge", "L_netsurplus_n_composed", "L_oneslot_interim"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:netsurplus_n)"
+notes = "All four clauses are credentialed over one common representation, the interim allocations of Racing/InterimBridge.lean. Certificate clause: generalCertificate_raceNash_iff_zero, uniform over opponents. Smoothing-shortfall and dominance clauses: plLaw_interimWelfare_shortfall_le and plLaw_netSurplus_dominates_strictPriority, instantiated at plPermutationLaw with shiftedExponentialRate, so the conclusion is about the actual exponential-score rule. One-slot monotonicity clause: plLaw_oneSlot_interimWelfare_antitoneOn, now stated over the same interim allocations rather than only over the softmax representation. Scope note: the racing clauses hold opponents fixed inside each agent response function, the convention of RentDissipation.lean; because the best-response characterization is uniform over admissible response functions, the profile statement is the genuine game-theoretic one. The identity net surplus equals allocative welfare at zero investment is definitional, since costs vanish there. Ledgers: smoothing_cliff_netsurplus_n_certificate_lean_20260813, smoothing_cliff_temperature_monotone_lean_20260813, smoothing_cliff_interim_bridge_lean_20260813, smoothing_cliff_netsurplus_n_composed_lean_20260813, smoothing_cliff_oneslot_interim_lean_20260813."
+
+[nodes.L_optcert_guarantee]
+fingerprint = "sha256:85688c702b8b"
+kind = "lemma"
+statement = "Under linear-quadratic latency costs every nonnegative best response is bounded by the published investment bound a_i^S, and at any profile whose per-agent burden is bounded by the published one, net surplus is at least the certified objective."
+depends_on = ["L_rentdissipation_core", "L_water_filling_certificate"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:optcert clause (i))"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.linearQuadraticCost_hasDerivAt, linearQuadratic_bestResponse_le_investmentUpperBound, and certifiedNetSurplus_guarantee in Racing/OptimalCapGuarantee.lean. The guarantee chain takes the water-filling worst-case bound of thm:pos (ii) and the effective-input welfare comparison as explicit hypotheses, so it composes with the credentialed water-filling result rather than restating it. Full-file diagnostics: no findings; lean_verify scan_source=true: no warnings, axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_optcert_guarantee_lean_20260813."
+
+[nodes.L_optcert_capacity_static]
+fingerprint = "sha256:e452a61fdb51"
+kind = "lemma"
+statement = "If one objective exceeds another by an amount antitone in the argument and the smaller one has a unique maximizer, the larger one's maximizer is no larger; raising every agent's racing capacity changes the certified objective by an amount monotone in the cap, so the optimal published cap weakly falls."
+depends_on = ["L_optcert_analytic"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:optcert clause (iv), capacity direction)"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.isMaxOn_le_of_antitone_difference, agentRacingBurden_factored, burdenBracket_mono, agentRacingBurden_difference_monotone_in_capacity, and certifiedNetSurplus_maximizer_antitone_in_capacity in Racing/OptimalCapGuarantee.lean. The comparative static is ordinal single crossing and uses no derivative, unlike the paper's proof, which argues through the one-sided derivative of R. The factored burden gamma * m * (chi + w + m/2) with m the positive part is what makes the capacity difference monotone in the cap. Full-file diagnostics: no findings; lean_verify scan_source=true: no warnings, axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_optcert_capacity_static_lean_20260813."
+
+[nodes.L_optcert_premium_static]
+fingerprint = "sha256:f36855a9562b"
+kind = "lemma"
+statement = "A difference of positive parts is monotone when the arguments move right and spread out, provided each pair is ordered; hence raising every agent's premium changes the certified objective by an amount monotone in the cap and weakly lowers the optimal published cap, and raising the reserve weakly raises it."
+depends_on = ["L_optcert_capacity_static"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:optcert clause (iv), value and reserve directions)"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.posPart_sub_posPart_mono, posPart_premium_monotone, posPart_premium_difference_monotoneOn, posPart_premium_le, agentRacingBurden_difference_monotoneOn_in_premium, certifiedNetSurplus_maximizer_antitone_in_premium, and certifiedNetSurplus_maximizer_monotone_in_reserve in Racing/OptimalCapPremium.lean. Like the capacity direction, the argument is ordinal single crossing rather than the paper's one-sided derivative of R. MACHINE-CAUGHT ERROR: the positive-part comparison is false without the two ordering hypotheses; at a=0, b=-10, a-prime=5, b-prime=-5 every other hypothesis holds and the conclusion fails. The ordering holds in the application only for nonnegative caps, which is why the burden statement is MonotoneOn the nonnegative caps rather than Monotone. Full-file diagnostics: no findings; lean_verify scan_source=true: no warnings, axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_optcert_premium_static_lean_20260813."
+
+[nodes.R_coercivity]
+fingerprint = "sha256:95c2b81779eb"
+kind = "proposition"
+statement = "The growth hypothesis in prop:rentdissipation (i) is not removable: under exponential scores the interim allocation is invariant to a common translation of the own score and the opponents log-intensities, so a centered opponent offers the same spread at every advantage level, and a strictly convex cost with bounded marginal cost admits positive marginal utility above any given advantage."
+depends_on = ["L_spread_decay"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (rem:coercivity)"
+notes = "This remark was added to the paper on 2026-08-13 as part of the rent-dissipation repair. Its content is exactly the machine-checked no_uniform_escape_level package credentialed by L_spread_decay, including the calibrated centered-window value 4(e^2-1)/(e^2+1) greater than one; the node exists so the graph records the paper location. Ledger: smoothing_cliff_spread_decay_and_no_uniform_escape_lean_20260813."
+
+[nodes.R_tullock]
+fingerprint = "sha256:6800003e8eb3"
+kind = "proposition"
+statement = "With a positive reserve, replacing translation invariance by invariance to common rescalings of eligible bids is equivalent to the power-form Tullock intensity on the eligible region."
+depends_on = ["A_luce_intensity", "P_axiomatization"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (rem:tullock)"
+notes = "Lean 4.30.0: SmoothingCliff.Mechanism.logBidIntensity, ScaleRatioInvariant, PowerOnEligible, exp_log_offset, and scale_ratio_invariance_iff_power in Mechanism/ScaleInvariance.lean. The formalization is the paper's own argument: rescaling bids is translating log-bids, so the intensity composed with the exponential falls under translation_ratio_invariance_iff_exponential, and undoing the logarithm turns the exponential form into a power. Eligible bids are written reserve times exp of a nonnegative log-offset, which matches the offset convention of the axiomatization file exactly. Full-file diagnostics: no findings; lean_verify scan_source=true: no warnings, axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_tullock_scale_invariance_lean_20260813."
+
+
+[nodes.R_functionalform]
+fingerprint = "sha256:8af5c7cb97b8"
+kind = "proposition"
+statement = "The stability certificate uses only that the intensity is increasing with bounded log-derivative, so any log-Lipschitz sequential Luce family carries the same certificate with the reciprocal temperature replaced by the supremum of the log-derivative; for the Tullock member this gives w1/(e tilde-tau r) in bid units."
+depends_on = ["A_pl_stability", "L_stability_conditioned_core"]
+location = "Smoothing_the_Cliff_ITCS.tex (rem:functionalform)"
+notes = "Formalized 2026-08-14. The score layer of the development was already stated for an arbitrary real score; only the bid layer hard-wired the exponential. Mechanism/GeneralIntensity.lean supplies the bid layer for a general score, so the certificate holds on any convex set of bids where the score is differentiable with derivative in [0, bound], with Lipschitz constant the top weight over e times bound. The two members the remark names are read off: the exponential score returns the reciprocal temperature and reproduces the constant of conditionalBidPriority_lipschitz, and the Tullock score, a scaled logarithm whose derivative is largest at the reserve, returns the top weight over e times the exponent temperature times the reserve. This is at the conditioned layer, which is the layer L_stability_conditioned_core credentials for the exponential case, so the generalization is at parity with what it generalizes."
+verified = ["lean"]
+
+[nodes.R_kernel]
+fingerprint = "sha256:06bd645cf246"
+kind = "proposition"
+statement = "For a self-resampling scheme whose conditional allocation kernel is a scale family with a continuously differentiable density and finite endpoint limit, half the total variation between the kernels at two scales is at most c_g times the logarithm of the scale ratio, hence at most c_g times the scale gap over the reserve on the eligible region, with c_g the half sum of the density variation and the boundary term; dropping the boundary term from c_g makes the bound false."
+depends_on = ["A_wrapper", "L_wrapper_cert"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (rem:kernel)"
+notes = "Lean 4.30.0: SmoothingCliff.Wrapper.ScaleGen, scaleDensity, scaleKernel, halfL1, l1_scaleDensity_decomposition, overlap_le_varA_mul_log, boundary_eq_inv_integral, halfL1_scaleDensity_le, halfL1_scaleDensity_triangle, halfL1_geom_chain, tendsto_nat_mul_exp_sub_one, halfL1_scaleDensity_le_log, halfL1_scaleDensity_le_cg, halfL1_scaleDensity_le_cg_reserve, eventually_halfL1_le_local_rate, halfL1_uniform, uniform_not_le_varA_only, tvLipschitzKernel_scaleKernel_cg, wrapper_certificate_scaleKernel in Wrapper/ScaleKernelTV.lean. The exact L1 decomposition into an overlap term and a boundary term replaces the differentiation of a moving-support density that made this remark look heavy, and a telescoping Phi-primitive identity avoids Fubini. That direct route bounds the finite difference with the supremum of g near the endpoint rather than with g(1-), so a first pass carried an endpoint-domination hypothesis and the remark was recorded as missing one. That was wrong, and it is the paper's route that is right: half the L1 distance is a metric, so it is subadditive along a geometric chain of intermediate scales whose steps all share one ratio, and as the chain refines the sliver bound falls back to g(1-) by continuity while n(lambda^(1/n) - 1) falls to log lambda. The limit is c_g log lambda, and log lambda at most lambda - 1 gives the displayed c_g (b' - b)/r with no extra hypothesis. uniform_not_le_varA_only confirms the remark's closing sentence by refuting the boundary-free constant: for the uniform kernel at b=1, b'=3/2 half the total variation is 1/3 against a claimed 1/4. Full-file diagnostics: no findings, no warnings; axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_scale_kernel_tv_lean_20260817."
+
+[nodes.R_constant]
+fingerprint = "sha256:0357f23fac41"
+kind = "proposition"
+statement = "The stability certificate depends on the slot profile only through the top weight and not through the total mass; the telescoped decrements sum to that top weight; the constant is uniform over slot counts and opponent profiles; it improves on the naive per-slot bound by the factor e times total mass over top weight; and at one slot the exact constant w1/(4 tau) is strictly below it."
+depends_on = ["T_stability", "C_tight_K1"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:473 (rem:constant)"
+notes = "Lean 4.30.0: SmoothingCliff.Mechanism.sum_decrements_eq_top, flatProfile, flatProfile_mass, certificate_independent_of_mass, naive_bound_ratio, and oneSlot_constant_lt_general in Mechanism/CertificateStructure.lean. The mass-independence and uniformity claims are negative ones, so rendering them as an identity between two profiles with the same top weight would be vacuous; they are stated instead as a worked contrast, a flat profile of K slots against a single-slot profile, whose certificates coincide while flatProfile_mass shows their masses differ by the factor K. Uniformity over opponent profiles is inherited from the quantifier structure of exponential_certificate, which fixes no ConditionedOpponentOrderStats. Monotonicity, the remark's aside, is conditionalBidPriority_monotone in Mechanism/GeneralStability.lean. NOT COVERED: the calibrated statement that profile maxima run 62 to 76 percent of the general certificate, which is a numerical appendix check on the Ethereum data rather than a deductive claim. Full-file diagnostics: no findings; axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_certificate_structure_lean_20260817."
+
+[nodes.R_wf_tight]
+fingerprint = "sha256:93bb27030dd2"
+kind = "proposition"
+statement = "On the active band B of the water-filling rule the own-bid derivative is the sensitivity times one minus the reciprocal of the band size, strictly below the published cap and approaching it as the band fills; the one-slot PL derivative bound w1/(4 tau) is below the general certificate w1/(e tau); and the profitable-deviation test averages that derivative over the run-up."
+depends_on = ["T_pos", "C_tight_K1", "R_constant", "P_exact_threshold"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:293 (rem:wf_tight)"
+notes = "Lean 4.30.0: SmoothingCliff.Frontier.bandFactor, bandFactor_nonneg, bandFactor_lt_one, bandFactor_singleton, bandFactor_tendsto_one, threshold_shift_eq, waterFill_band_increment, hasDerivAt_waterFill_band, and band_derivative_lt_cap in Frontier/BandDerivative.lean, together with Mechanism.oneSlot_constant_lt_general for the second clause and the exact-threshold credentials for the third. PAPER FINDING: the band identity needs a side condition the printed remark does not state, that the active band is the same set before and after the perturbation; a large enough increment pushes the raised coordinate against the cap or a marginal coordinate out of the band and the identity fails. The condition is carried here as the explicit hypotheses hin, hin' and hout. Given it, mass conservation forces the threshold to rise by exactly the increment over the band size, which is threshold_shift_eq, and the raised bidder keeps the difference. hasDerivAt_waterFill_band shows a band stable on a neighbourhood makes the map affine there, so this is a derivative and not a formal difference quotient; bandFactor_singleton records the degenerate end, a lone active coordinate cannot move at all. Full-file diagnostics: no findings, no warnings; axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_band_derivative_lean_20260817."
+
+[nodes.R_optcert_cubic]
+fingerprint = "sha256:1489eeb4a3b2"
+kind = "proposition"
+statement = "When the principal prices burned resources alone, the optimal cap is the cube root of the squared prize over aggregate racing capacity, it is unique, and the total certified concession is three halves of the quadratic racing term there."
+depends_on = ["L_optcert_analytic"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (rem:optcert_cubic)"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.dissipationOnlyCost, dissipationOnlyMarginal, dissipationOnlyCost_hasDerivAt, dissipationOnlyMarginal_strictMonoOn, cubic_of_isMinOn, dissipationOnlyCost_unique_minimizer, concession_eq_quadratic_of_cubic, and dissipationOnlyCost_eq_of_cubic in Racing/OptimalCapCubic.lean. The optimum is characterized by the cubic 4 * Gamma2 * cap^3 = w1^2 rather than by a real cube root, which keeps the value identity exact: at the optimum the smoothing concession equals the quadratic racing term, so the total is three halves of either. Uniqueness comes from strict monotonicity of the marginal rather than from a convexity library lemma. Full-file diagnostics: no findings; lean_verify scan_source=true: no warnings, axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_optcert_cubic_lean_20260813."
+
+
+[nodes.R_plmeanfield]
+kind = "proposition"
+statement = "In the large-market inclusion case the PL rule's allocation curve is w1 times one minus the exponential of minus theta times the intensity, with theta the market-clearing time; the curve is feasible for the ex-ante program but is not the ramp, so it is strictly inside the frontier for atomless value distributions."
+depends_on = ["T_meanfield", "A_pl_process"]
+location = "Smoothing_the_Cliff_ITCS.tex (rem:plmeanfield)"
+notes = "SECOND HALF CREDENTIALED 2026-08-14: Frontier/PLMeanFieldCurve.lean existsUnique_plClock gives the market-clearing time, plCurve_curveFeasible gives admissibility for the population programme under the matched certificate (the Lipschitz bound is exactly w1/(e tau) because the maximum of x exp(-x) is 1/e), and plCurve_welfare_lt_populationValue gives strict suboptimality for an atomless law through the uniqueness clause of part (ii). STILL OPEN: the first half, that this curve is the large-market limit of the race K_n-th order statistic, which needs the concentration argument; the curve is taken as defined rather than derived. The numerical wedge table is a separate calculation. Ledger: smoothing_cliff_pl_meanfield_curve_lean_20260814."
+
+[nodes.R_classscope]
+fingerprint = "sha256:4e7fdea20e96"
+kind = "proposition"
+statement = "Pointwise optimality fails already at two bidders once anonymity is dropped: the constant favoritism rules force the full weight to each leader at an epsilon lead, and own-bid Lipschitzness back to the tie violates feasibility for small epsilon."
+depends_on = ["A_frontier_rule"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (rem:classscope, counterexample in app:frontierproofs)"
+notes = "Lean 4.30.0: SmoothingCliff.Frontier.no_pointwise_optimum_without_anonymity and no_pointwise_optimum_without_anonymity_at_threshold in Frontier/Anonymity.lean. Only the own-bid Lipschitz property and one-slot feasibility are used, which is the remark's point: anonymity is forced rather than convenient. The second form carries the paper's displayed threshold weight/(2 sensitivity). Full-file diagnostics: no findings; lean_verify scan_source=true: no warnings, axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_anonymity_counterexample_lean_20260813."
+
+
+[nodes.R_heteroweights]
+kind = "proposition"
+statement = "With a general declining weight profile the large-market upper bound holds verbatim with per-capita mass redefined, but tightness can fail because implementability imposes the permutohedron partial-sum constraints, whose mean-field counterpart is a majorization family; the resulting program is left open."
+depends_on = ["T_meanfield", "P_squeeze"]
+location = "Smoothing_the_Cliff_ITCS.tex (rem:heteroweights)"
+notes = "FIRST CLAUSE CREDENTIALED 2026-08-14: Frontier/HeterogeneousWeights.lean profileCertifiedRule_le_populationValue and profileCertifiedRule_le_postedRamp carry part (i) to a declining profile with per-capita mass the total profile mass over n. The remark own reason is itself a theorem there, profileCertifiedRule_iff_certifiedRule: the heterogeneous class is the homogeneous class at the top weight with slots redefined, so the bound transfers by instantiation. The node stays open by design, since the rest of its statement, that tightness can fail because implementability forces the permutohedron partial sums whose mean-field counterpart is a majorization family, is an open problem in the paper. Ledger: smoothing_cliff_heteroweights_lean_20260814."
+
+[nodes.L_optcert_entrycost_static]
+fingerprint = "sha256:769b56478996"
+kind = "lemma"
+statement = "One agent's racing bracket equals the positive part of premium times cap minus entry cost, times the average of that product with the entry cost plus the top weight; the difference between two entry costs is flat above the larger kink, rising between the kinks and zero below the smaller, hence monotone in the cap, so raising every entry cost weakly raises the optimal published cap."
+depends_on = ["L_optcert_capacity_static", "L_optcert_premium_static"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:optcert clause (iv), entry-cost direction)"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.entryBurdenTerm, entryBurdenTerm_eq_bracket, entryBurdenTerm_difference_monotone, agentRacingBurden_difference_monotoneOn_in_entryCost, and certifiedNetSurplus_maximizer_monotone_in_entryCost in Racing/OptimalCapEntryCost.lean. The entry cost is the awkward parameter because it sits in the kink location and in the bracket coefficient at once. The closed form (u - chi)^+ * ((u + chi)/2 + w), valid on both sides of the kink because the positive part kills the second factor exactly where it would be wrong, makes the difference explicit: it is constant above the larger kink, which is why the awkwardness cancels. Full-file diagnostics: no findings; lean_verify scan_source=true: no warnings, axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_optcert_entrycost_static_lean_20260813."
+
+[nodes.L_optcert_divergence]
+fingerprint = "sha256:04ae758682cd"
+kind = "lemma"
+statement = "A strictly concave function whose value at twice a level exceeds its value at that level has its maximizer above the level; the racing burden is bounded by the top weight times the cap times the linear aggregate plus three halves of the squared cap times the quadratic aggregate; hence once both aggregates are small enough that the burden at twice a target falls below an eighth of the squared prize over the target, the optimal published cap exceeds the target."
+depends_on = ["L_optcert_analytic"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:optcert clause (iv), divergence limit)"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.lt_isMaxOn_of_lt_double, agentRacingBurden_le_aggregates, racingBurden_le_aggregates, and maximizer_gt_of_racingBurden_small in Racing/OptimalCapDivergence.lean. The paper argues through the right derivative of the racing burden; the route here needs no derivative at all, only strict concavity and one comparison between a level and its double, which is why it composes directly with the already credentialed concavity. The burden bound isolates exactly the two aggregates the paper sends to zero. Full-file diagnostics: no findings; lean_verify scan_source=true: no warnings, axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_optcert_divergence_lean_20260813."
+
+[nodes.P_optcert]
+fingerprint = "sha256:531cb59bb397"
+kind = "proposition"
+statement = "The published-cap objective is a valid net-surplus guarantee with a unique maximizer no tighter than the certified no-race boundary, the stated boundary criterion, first-order equation, and comparative statics."
+depends_on = ["T_pos", "P_rentdissipation", "L_optcert_analytic", "L_optcert_guarantee", "L_optcert_capacity_static", "L_optcert_premium_static", "L_optcert_entrycost_static", "L_optcert_divergence"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:optcert)"
+notes = "All four clauses are credentialed. Clause (i) guarantee: L_optcert_guarantee, which takes the water-filling worst-case bound of thm:pos (ii) as an explicit hypothesis so it composes with that credentialed result. Clauses (ii) and (iii), strict concavity, unique maximizer, no-race boundary and the boundary criterion: L_optcert_analytic. Clause (iv) comparative statics: capacity by L_optcert_capacity_static, value by L_optcert_premium_static with the reserve direction as its corollary, entry cost by L_optcert_entrycost_static, and the divergence limit by L_optcert_divergence. Scope note: every comparative static is proved as ordinal single crossing rather than through the one-sided derivative of R used in the paper, and the divergence limit is proved by one comparison between a cap level and its double rather than by a coercivity estimate on that derivative. The conclusions are the paper's; the routes are shorter."
+
+[nodes.L_optcert_analytic]
+fingerprint = "sha256:4fb1345013eb"
+kind = "lemma"
+statement = "For the paper's finite-agent linear-quadratic published-cap objective, the positive-cap objective is strictly concave, has a unique positive global maximizer under the stated sign and positive-premium conditions, no maximizer is tighter than a positive no-race boundary, and the boundary is optimal exactly under the displayed one-sided slope condition."
+depends_on = []
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:2198-2225 (prop:optcert, analytic objective)"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.certifiedNetSurplus_strictConcave, certifiedNetSurplus_unique_maximizer, boundary_maximizer_iff_slope_condition, maximizer_not_below_noRaceBoundary, certifiedNetSurplus_existsUnique_maximizer, and certifiedNetSurplus_existsUnique_maximizer_above_noRaceBoundary. The formal objective exactly uses a_i^S=gamma_i((v_i-r)S-chi_i)^+ and R(S)=sum_i[c_i(a_i^S)+w1 a_i^S]. Scope boundary: this analytic credential does not establish that the objective bounds every rationalizable mechanism outcome; that linkage remains in P_optcert through T_pos and P_rentdissipation. Full-file diagnostics and lean_verify source scans were clean; only standard axioms. Ledger: smoothing_cliff_optcert_analytic_lean_20260813."
+
+[nodes.T_meanfield]
+fingerprint = "sha256:8a5bb9ecfd2f"
+kind = "theorem"
+statement = "The posted capped-linear ramp gives the exact large-market upper bound and population program optimizer, and rationed ramps achieve it at finite n up to the stated O(n^-1/2) term."
+depends_on = ["A_frontier_domain", "A_frontier_rule", "L_meanfield_finite_core"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:2315 (thm:meanfield)"
+notes = "CREDENTIALED 2026-08-14, all three parts at general-law level. (i) Frontier/InterimBridgeMeanField.lean certifiedRule_le_populationValue and certifiedRule_le_postedRamp, with the marginal identification proved (measurePreserving_updateSelf) and a rule class that does not require anonymity or cross-monotonicity, hence stronger than the paper. (ii) Frontier/PopulationProgram.lean postedRamp_solves_population_program by single crossing, with uniqueness up to null sets under NoAtoms and existence of the threshold. (iii) Frontier/RationedRamp.lean for the class properties, Frontier/SlotLottery.lean for the lottery over feasible assignments, Frontier/RationedRampPayments.lean for the truthful Myerson transfers, Frontier/RationingVariance.lean for the independence input, and Frontier/GeneralRationingRate.lean rationedRampMap_frontier_sandwich for the rate itself at a general law, which puts (iii) at the same level as (i) and (ii). RESIDUE, disclosed rather than claimed: the theorem closing sentence, that along any sequence with per-capita mass converging the per-capita value converges to the limiting programme value, is not stated as a limit; the sandwich bounds it at every n but the passage to the limit needs continuity of the programme value in the mass cap, which is not proved. Ledger: smoothing_cliff_interim_bridge_lean_20260814, smoothing_cliff_population_program_lean_20260814, smoothing_cliff_rationed_ramp_lean_20260814, smoothing_cliff_slot_lottery_lean_20260814, smoothing_cliff_ramp_payments_lean_20260814, smoothing_cliff_rationing_variance_lean_20260814, smoothing_cliff_general_rationing_rate_lean_20260814."
+
+[nodes.L_meanfield_finite_core]
+fingerprint = "sha256:b6716f41e39b"
+kind = "lemma"
+statement = "For a finite-support population law, averaging a feasible Lipschitz allocation yields the exact population upper bound; the clipped posted ramp solves the finite population program, and a rationed finite-n response loses at most the stated second-moment bound, giving per-capita rate bbar*w1/(4*sqrt n) under the corresponding variance certificate."
+depends_on = ["A_frontier_domain", "A_frontier_rule"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:2295-2385 (thm:meanfield, finite-support analytic core)"
+notes = "Lean 4.30.0: SmoothingCliff.Frontier.finiteMarket_average_upper_bound, exists_postedRamp_of_smaller_mass, postedRamp_optimal_at_equal_mass, postedRamp_solves_finite_population_program, finitePopulationValue_eq_postedRamp, rationedResponse_total_le, rationedResponse_welfare_loss_le, finite_expected_excess_le_quarter_sqrt, and finite_rationing_perCapita_rate. Full-file diagnostics and lean_verify source scans were clean; only standard axioms. Scope boundary is recorded on T_meanfield. Ledger: smoothing_cliff_meanfield_finite_core_lean_20260813."
+
+[nodes.P_mechanism_runtime]
+kind = "proposition"
+statement = "The direct sequential sampler runs in O(nK), Gumbel-top-K with a size-K heap in O(n log K) plus optional sorting, and the payment wrapper adds O(n) work."
+depends_on = ["A_pl_process", "A_wrapper", "L_runtime_costmodel"]
+location = "Smoothing_the_Cliff_ITCS.tex:2542 (prop:mechanism_runtime)"
+notes = "SCOPE LIMIT (author decision 2026-08-13): the explicit cost model and its IsBigO relations are credentialed by L_runtime_costmodel and that is where this node stops. Refining to a concrete heap, sampler and RNG implementation would formalize standard data structures rather than anything the paper claims."
+
+[nodes.L_runtime_costmodel]
+fingerprint = "sha256:bc1539069ae4"
+kind = "lemma"
+statement = "In the paper's explicit unit-cost loop model, K scans of n eligible agents cost exactly nK, one key plus a depth-ceil(log2(K+1)) heap update per agent has the displayed n-log-K count, sorting retained keys adds the displayed K-log-K count, and constant work per report is linear."
+depends_on = []
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex:2522-2529 (prop:mechanism_runtime, counted-loop core)"
+notes = "Lean 4.30.0: SmoothingCliff.Mechanism.repeatCost_eq_mul, directSequentialSamplerCost_eq, gumbelTopKHeapCost_eq, gumbelTopKSortedCost_eq, singleCallWrapperCost_eq, and mechanismRuntimeCostCertificate prove exact counts. RuntimeAsymptotics.lean additionally packages the four claims using Mathlib's actual IsBigO relation in mechanismRuntimeAsymptoticCertificate. Scope boundary: these files verify the explicit unit-cost model, not a concrete heap, random-number generator, or deployed wrapper implementation; therefore P_mechanism_runtime itself remains uncredentialed. Full-file diagnostics and lean_verify source scans were clean; only standard axioms. Ledgers: smoothing_cliff_runtime_costmodel_lean_20260813 and smoothing_cliff_runtime_asymptotics_lean_20260813."
+
+[nodes.P_flatK]
+fingerprint = "sha256:8c8b0cf17d5c"
+kind = "proposition"
+statement = "Inclusion case, flat weights on K slots: every anonymous, monotone, cross-monotone, S-Lipschitz rule with per-agent cap w1 and mass at most K*w1 loses at least K(n-K)^2/n^2*w1^2/(4S) at the K-leader two-block certificate, and with no waste also (n-K)K^2/n^2*w1^2/(4S) at the trailer certificate; K-slot water-filling is in the class, implementable with Myerson transfers, and its worst case is exactly K(n-K)/n*w1^2/(4S), attained at the two-block profile."
+depends_on = ["A_frontier_domain", "A_frontier_rule", "P_squeeze"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:flatK, added 2026-08-17)"
+notes = "Lean 4.30.0: SmoothingCliff.Frontier.{flatK_leader_lower_bound_certificate, flatK_trailer_lower_bound_certificate, flatK_waterFilling_loss_le, flatK_twoBlock_mass, flatK_twoBlock_loss_eq}; full build clean, axioms propext/Classical.choice/Quot.sound only, 0 sorry. FORMAL STRONGER THAN PRINTED: the displaced-mass bound is certified for every K-subset benchmark, with no top-K hypothesis. The printed (i) proof routes through prop:squeeze after the 2026-08-18 repair (paper commit fc3aa15); the Lean lower bounds reuse the certified squeeze_ceiling_of_subset / squeeze_floor_of_top. Ledger: smoothing_cliff_flatK_capacity_law_lean_20260818."
+
+[nodes.P_rho3]
+kind = "proposition"
+statement = "Consistency gap at n=3, K=1: w1^2/(336*S) <= rho_3(S) <= w1^2/(4*S), where rho_n is the smallest worst-case distance of a single rule in C to the profile-by-profile frontier of C."
+depends_on = ["P_threebidders", "T_pos"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:rho3, added 2026-08-17)"
+notes = "PARTIAL LEAN COVERAGE, no node-level credential: the constant bridge (T5 -> 1/336, normalized and in physical units) and the upper bound (any feasible rule outperforms water-filling by at most w1^2/(4S) at every profile) are certified in SmoothingCliff.Frontier.{shortfall_bridge, shortfall_bridge_units, oneSlot_welfare_le_strictPriority, rho3_upper_certificate} (ledger smoothing_cliff_rho3_bridge_lean_20260818). The lower bound consumes the (T5) tradeoff and the (T6)/(T7) attainments from inside the proof of P_threebidders, a scope-limited node resting on the exact rational witness, so this node inherits that standing."
+
+[nodes.C_luceclass]
+kind = "corollary"
+statement = "At K=1 a sequential Luce rule with increasing C1 intensity satisfies the eligible-region cap S iff (log alpha)' <= 4S/w1, and every such rule has worst-case loss at least w1^2*ln(n-1)/(8S): the logarithmic premium is the price of the Luce class."
+depends_on = ["P_luceopt", "T_pos"]
+location = "Smoothing_the_Cliff_ITCS.tex (cor:luceclass, added 2026-08-17)"
+notes = "PARTIAL LEAN COVERAGE, no node-level credential: the premium half is certified as a composition of the within-Luce optimality and the matched log-trailer witness, plus a reserve-cancellation bridge (SmoothingCliff.LuceOptimality.{oneSlotLuceWelfare_exponential_eq_PL, luceClass_matched_log_premium}; ledger smoothing_cliff_luceclass_premium_lean_20260818). The iff-equivalence half rests on the recorded one-slot derivative computation (oneSlotLuceProbability machinery) and is not separately composed."
