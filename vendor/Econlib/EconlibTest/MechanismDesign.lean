@@ -1,0 +1,6 @@
+import EconlibTest.MechanismDesign.PersuasionContinuous
+import EconlibTest.MechanismDesign.PersuasionFinite
+import EconlibTest.MechanismDesign.PersuasionMoment
+import EconlibTest.MechanismDesign.TransfersAuctions
+import EconlibTest.MechanismDesign.TransfersScreening
+import EconlibTest.MechanismDesign.TransfersVCG

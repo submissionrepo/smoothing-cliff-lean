@@ -8,7 +8,7 @@ relaxedAutoImplicit = false
 
 [[require]]
 name = "Econlib"
-path = "../../lean/Econlib"
+path = "vendor/Econlib"
 
 [[lean_lib]]
 name = "SmoothingCliff"

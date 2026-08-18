@@ -1,0 +1,6 @@
+import EconlibTest.Preferences.Core
+import EconlibTest.Preferences.Geometry
+import EconlibTest.Preferences.Representation
+import EconlibTest.Preferences.Risk
+import EconlibTest.Preferences.UtilityFamilies
+import EconlibTest.Preferences.UtilitySeparable

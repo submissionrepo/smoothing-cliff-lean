@@ -1,0 +1,28 @@
+name = "Econlib"
+version = "0.1.4-rc3"
+keywords = ["economics", "formal theory", "political science"]
+defaultTargets = ["Econlib", "EconlibExamples", "EconlibTest"]
+lintDriver = "batteries/runLinter"
+
+[leanOptions]
+pp.unicode.fun = true                 # pretty-prints `fun a ↦ b`
+relaxedAutoImplicit = false
+weak.linter.mathlibStandardSet = true
+maxSynthPendingDepth = 3
+
+[[lean_lib]]
+name = "Econlib"
+[[lean_lib]]
+name = "EconlibExamples"
+
+[[lean_lib]]
+name = "EconlibTest"
+
+[[require]]
+name = "optlib"
+path = "../optlib"
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.30.0"

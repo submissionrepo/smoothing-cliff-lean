@@ -1,0 +1,59 @@
+# Justfile for Econlib
+#
+# Recipes:
+#   just build   -- build the library (thin wrapper around `lake build`)
+#   just docs    -- generate the doc-gen4 HTML documentation into ./docs
+
+# Show available recipes when run with no arguments.
+default:
+    @just --list
+
+# Build the whole library.
+build *ARGS:
+    lake build {{ ARGS }}
+
+# Build the HTML docs.
+#
+# doc-gen4 needs its own Lake package that depends on Econlib. We create a
+# throwaway `docbuild/` package, build the `Econlib:docs` target inside it,
+# copy the generated HTML out to `./docs`, then delete `docbuild/`.
+docs:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    rm -rf docbuild docs
+
+    # Pin doc-gen4 to the same rev the parent lakefile pins mathlib to, so the
+    # doc build and the library are always compiled against one Mathlib.
+    mathlib_rev=$(awk 'BEGIN{RS="\\[\\[require\\]\\]"} /name[ \t]*=[ \t]*"mathlib"/ && match($0, /rev[ \t]*=[ \t]*"[^"]+"/) { s=substr($0,RSTART,RLENGTH); sub(/^rev[ \t]*=[ \t]*"/,"",s); sub(/"$/,"",s); print s }' lakefile.toml)
+    if [ -z "${mathlib_rev}" ]; then
+      echo "error: could not read mathlib rev from lakefile.toml" >&2
+      exit 1
+    fi
+
+    mkdir -p docbuild
+    ln -s ../lean-toolchain docbuild/lean-toolchain
+    cat > docbuild/lakefile.toml <<EOF
+    name = "docbuild"
+    reservoir = false
+    version = "0.1.0"
+    packagesDir = "../.lake/packages"
+
+    [[require]]
+    scope = "leanprover"
+    name = "doc-gen4"
+    rev = "${mathlib_rev}"
+
+    [[require]]
+    name = "Econlib"
+    path = "../"
+    EOF
+
+    # Resolve doc-gen4 (reusing the already-built packages under ../.lake), then
+    # build the documentation for the Econlib target.
+    ( cd docbuild && MATHLIB_NO_CACHE_ON_UPDATE=1 lake update doc-gen4 && lake build Econlib:docs )
+
+    # Preserve the generated HTML before tearing down the build package.
+    cp -r docbuild/.lake/build/doc docs
+
+    rm -rf docbuild
+    echo "Docs written to ./docs (open ./docs/index.html)"
