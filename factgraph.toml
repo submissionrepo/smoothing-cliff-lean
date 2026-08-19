@@ -6,6 +6,24 @@
 # repairs prop:rentdissipation (i) and the strict-priority clause of rem:sybilsign
 # and adds rem:coercivity. Only those passages changed; every other node statement
 # and every existing `verified` credential still refers to unchanged text.
+# Source moved 2026-08-19 to blob 8804dde38abd3f23525af337c5bfb58b5da4970b (paper
+# commit ac6070e): a presentation-only refactor. Appendices reordered so every
+# statement precedes its proof (Frontier / Racing / Mechanism), theorem environments
+# renumbered by section, bibliography sorted; no statement content changed and no
+# premise moved, so every fingerprint and credential remains valid. Printed symbol
+# renames relative to earlier blobs: the general-n no-race threshold tau-dagger of
+# prop:netsurplus_n now prints as tau-ddagger (the two-bidder tau-dagger of
+# prop:netsurplus and prop:exact_threshold is unchanged); the wrapper kernel G_j and
+# constant L_G print as Phi_j and L_Phi; the wrapper's resampled bids chi_i print as
+# check-b_i; the sybil inclusion probability rho(z) prints as pi(z); the proof-local
+# masses p_k / alpha_j / beta_j of prop:sp_mixed and prop:sp_allequilibria print as
+# omega_k / omega_j / bar-omega_j; kappa_A, kappa_B, and gamma in the
+# prop:threebidders proof print as zeta_A, zeta_B, and g_2; the boundary family in
+# prop:sp_allequilibria(iii) is indexed by the payoff U = t*w1*G instead of t; and
+# rem:rentcap states U_1 <= hat-kappa*w1*G with the proof's normalization named.
+# lem:welfareloss is stated in Section 4.1 and prop:optcert's objective is displayed
+# in Section 6; both remain unchanged in content. `location` line numbers remain
+# those of the frozen kickoff blob, as before.
 # `verified` is added only after the named Lean declaration passes full-file
 # diagnostics and `lean_verify` without sorryAx or an unapproved custom axiom.
 
