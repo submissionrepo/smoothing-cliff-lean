@@ -1,47 +1,34 @@
 # Smoothing the Cliff — machine-checked proofs
 
-Lean 4 development for the paper *Smoothing the Cliff: Priority Mechanism
-Design under Allocation-Sensitivity Constraints* (double-blind submission;
+Lean 4 development for the paper *Smoothing the Cliff: Welfare and Latency
+Incentives in Priority Mechanisms* (double-blind submission;
 this repository carries no author information). Shipped here are the Lean
 sources, the manifest carrying one node per paper statement
 (`factgraph.toml`) with its checker (`factgraph.py`), and the exact-arithmetic
-certificate behind the three-bidder proposition (`n3_witness/`). The
-credential ledger ships with the paper's supplementary artifact.
+certificate behind the three-bidder proposition (`n3_witness/`).
 
 ## What we checked
 
-The state of things at this revision: 103 Lean files and 1,397 theorems in
-`SmoothingCliff/`, building in 3,573 jobs with no errors, no `sorry`
-anywhere, no custom axiom, and every credentialed statement resting only on
-the three axioms of Lean's standard foundations, `propext`,
-`Classical.choice` and `Quot.sound`. Of the 96 non-assumption statements in
-the manifest, 88 carry a machine-checked credential, and all five theorems of
-the paper are among them.
+The development contains 104 Lean source files and 1,531 theorem or lemma
+declarations under `SmoothingCliff/`. A clean build completes 3,576 jobs with
+no errors. The sources contain no `sorry` and no custom axiom; every
+credentialed statement rests only on Lean's standard foundational axioms
+`propext`, `Classical.choice`, and `Quot.sound`. The manifest has 142
+non-assumption nodes, of which 101 carry a Lean credential. All five theorem
+nodes are among them.
 
-The eight without one are not silent omissions. Six are scope decisions.
-
-- `prop:threebidders` and `lem:gridinterp` rest on a 19×19 rational witness
-  that we check in exact arithmetic outside Lean, in `n3_witness/`.
-- Clause (v) of `prop:sp_race`, existence of a mixed equilibrium, wants a
-  Kakutani–Fan–Glicksberg theorem for locally convex spaces that neither
-  Mathlib nor Econlib has.
-- `prop:mechanism_runtime` we credentialed at the level of the counted-loop
-  cost model and stopped there, short of formalizing concrete heap and
-  sampler implementations.
-- `prop:rho3` has its constant bridge and its upper bound certified, but its
-  lower bound consumes the tradeoff and attainment facts from inside the
-  three-bidder proof, so the node inherits the witness's standing rather
-  than a Lean credential.
-- `cor:luceclass` has its premium half certified as a composition of the
-  within-Luce optimality and the matched log-trailer witness; the
-  equivalence half rests on the recorded one-slot derivative computation and
-  is not separately composed.
-
-The remaining two are remarks whose statements contain problems the paper
-itself leaves open, so we never expected them to go green in full: the clause
-of `rem:heteroweights` past its first sentence, and the large-market limit
-half of `rem:plmeanfield`. In both we credentialed whichever part of them
-makes a claim.
+The manifest records the remaining 41 nodes statement by statement. The
+general-*n* and heterogeneous strict-priority equilibrium arguments remain
+analytic, with scalar identities checked separately by SymPy and, where
+applicable, Z3 and cvc5. `prop:threebidders` and `lem:gridinterp` use a 19×19
+rational witness checked in exact arithmetic outside Lean. The runtime
+proposition is certified only at the counted-loop cost-model level. The
+utility interpretation of the sharp coefficient, the general-*n* near-tie
+consequences, and several composed corollaries are not packaged as single
+Lean declarations even when their inputs are credentialed. The two
+large-market remarks retain the open parts identified in the paper.
+Literature correspondences are source-checked rather than encoded as Lean
+theorems.
 
 **What a credential is attached to.** A credential is issued against a pair:
 the statement of a node, and the set of premises it stands on. The manifest
@@ -54,13 +41,12 @@ The fingerprint turns that drift into a failed check.
 
 ## The manifest as a graph
 
-The manifest is a directed graph. One vertex per paper statement, and an edge
-from *P* to *Q* whenever the paper's proof of *Q* uses *P*. At this revision
-it carries 106 vertices and 193 edges, of which 10 vertices are assumptions,
-53 are lemmas, 33 propositions, 5 theorems and 5 corollaries. Fifteen
-vertices are sources, resting on nothing declared inside the paper, and 27
-are sinks, with nothing resting on them. The graph is acyclic, and a manifest
-in which it is not fails to load.
+The manifest is a directed graph. One vertex represents each paper statement,
+and an edge from *P* to *Q* records that the paper's proof of *Q* uses *P*. At
+this revision it has 156 vertices and 297 edges: 14 assumptions, 90 lemmas,
+39 propositions, 5 theorems, and 8 corollaries. Thirty-one vertices are
+sources and 33 are sinks. The graph is acyclic, and a manifest containing a
+cycle fails to load.
 
 A credential is issued against a vertex together with its in-edges. We
 fingerprint the pair consisting of a node's statement and its sorted premise
@@ -105,7 +91,7 @@ graph BT
 **The two reachability queries.** Downstream, `blast <node>` returns the
 descendant closure: what else falls if this statement falls. The assumptions
 run large here. `A_pl_process`, the exponential-race process itself, reaches
-40 of the 106 vertices. Upstream, `audit <node>` returns the ancestor closure
+40 of the 156 vertices. Upstream, `audit <node>` returns the ancestor closure
 together with the credential state of every vertex in it, so we can see
 whether the paper's route to a theorem passes through anything uncertified.
 The longest chain in the graph runs 10 edges, from `A_pl_process` through the
@@ -130,7 +116,7 @@ rests on a deep chain and supports nothing is fine as mathematics and
 expensive as effort. We looked at each and kept all of them. The graph is
 what raised the question.
 
-## Not everything wants a proof assistant
+## Verification layers
 
 A reader who takes Lean coverage as the only measure of rigour will misread
 what is here. The claims come in three kinds, and we pointed a different
@@ -140,8 +126,8 @@ instrument at each.
 lemmas and the mathematical content of remarks all assert that something
 follows from something else. A proof assistant helps most here, because the
 failure it catches, a step that does not follow, is the failure a careful
-reader slides past. All five theorems and 88 of the 96 statements tracked in
-the manifest are certified this way.
+reader slides past. All five theorems and 101 of the 142 non-assumption
+statements tracked in the manifest are certified this way.
 
 **Finite computations, which we checked in exact arithmetic.**
 `prop:threebidders` is settled by a rational witness on a 19×19 grid, and
@@ -197,7 +183,7 @@ repository root:
 
     lake build
 
-A clean build reports 3,573 jobs and exits zero. A single file typechecks on
+A clean build reports 3,576 jobs and exits zero. A single file typechecks on
 its own with `lake env lean <file>`, in seconds, writing nothing.
 
 A green build establishes neither of the next two properties, so we check
@@ -220,9 +206,8 @@ and cycles in the dependency graph.
 
 The table pairs each numbered result with the declaration carrying its
 credential. Where a result has several clauses we name the declaration that
-assembles them, and the manifest records the per-clause lemmas. The full
-correspondence, including the two hundred or so supporting lemmas, is in the
-manifest and the ledger shipped with the paper's artifact.
+assembles them, and the manifest records the per-clause lemmas. The manifest
+contains the full statement-by-statement correspondence and premise graph.
 
 | Paper statement | Lean declaration | File |
 |---|---|---|
@@ -233,6 +218,7 @@ manifest and the ledger shipped with the paper's artifact.
 | `thm:meanfield` | `certifiedRule_le_populationValue` (i), `postedRamp_solves_population_program` (ii), `rationedRampMap_frontier_populationValue` (iii) | `Frontier/InterimBridgeMeanField.lean`, `Frontier/PopulationProgram.lean`, `Frontier/GeneralRationingRate.lean` |
 | `prop:frontier2` | `twoBidder_frontier` | `Frontier/TwoBidder.lean` |
 | `prop:squeeze` | `ranked_squeeze_bounds` | `Frontier/Squeeze.lean` |
+| `prop:sharpcertificate` | `uniformCertificateCoefficients_eq` | `Racing/SharpCertificate.lean` |
 | `prop:threebidders` | exact-arithmetic checker, outside Lean | `n3_witness/` |
 | `prop:payment_identity` | `globalIsBIC_iff_paymentIdentity` | `Mechanism/Payments.lean` |
 | `prop:revenue` | `totalPayment_tendsto_reserve_mul_mass` | `Mechanism/Revenue.lean` |
@@ -240,6 +226,9 @@ manifest and the ledger shipped with the paper's artifact.
 | `prop:sp_mixed` | `latticeExpectedStrictPriorityPayoff` | `Racing/MixedRace.lean` |
 | `prop:sp_allequilibria` | `positive_payoff_classification_unconditional`, `positiveProfile_equilibrium` | `Racing/NextSupport.lean`, `Racing/PositiveProfile.lean` |
 | `prop:sp_floor` | `nash_dissipation_ge_prize_net_cost` | `Racing/BoundaryFloor.lean` |
+| `prop:sp_floor_n` | scalar algebra checked by SymPy and SMT; equilibrium argument outside Lean | manifest nodes `L_general_n_*` |
+| `prop:sp_floor_hetero` | scalar algebra checked by SymPy and SMT; equilibrium argument outside Lean | manifest nodes `L_hetero_*` |
+| `prop:sp_mixed_n` | analytic root-cdf construction, outside Lean | manifest nodes `L_general_n_*` |
 | `prop:sp_race` | pure clauses only (see above) | `Racing/RaceEquilibrium.lean` |
 | `prop:exact_threshold` | `existsUnique_boundaryRunUpAverage_maximizer` | `Racing/RunUpAverage.lean` |
 | `prop:netsurplus` | `heterogeneous_pureNash_netSurplus_le` | `Racing/NetSurplus.lean` |
@@ -247,11 +236,14 @@ manifest and the ledger shipped with the paper's artifact.
 | `prop:rentdissipation` | three clauses, see manifest | `Racing/RentDissipation.lean` |
 | `prop:optcert` | four clauses, see manifest | `Racing/OptimalCap.lean` |
 | `prop:mechanism_runtime` | cost model only | `Mechanism/Runtime.lean` |
-| `prop:flatK` | `flatK_waterFilling_loss_le` and four companion declarations | `Frontier/FlatK.lean` |
+| `prop:budgetwf` | `budgetSpent_flatK_own_modulus_exact`, `budgetSpent_flatK_regret_exact`, `flatKWaterFillingSelection_oneSlot_local_regret_le` | `Frontier/FlatKMinimax.lean` |
+| `prop:flatK` | `flatKScoreFrontier_sandwich`, `flatKCubeFrontier_lower`, `flatK_frontier_ratio`; original capacity law in `flatK_waterFilling_loss_le` | `Frontier/FlatKMinimax.lean`, `Frontier/FlatK.lean` |
 | `prop:rho3` | constant bridge and upper bound: `shortfall_bridge_units`, `rho3_upper_certificate` | `Frontier/ConsistencyGap.lean` |
 | `cor:ir` | `globalReservePayment_interimIR` | `Mechanism/Payments.lean` |
 | `cor:tight-K1` | `oneSlotLuceAllocation_lipschitz_eligible` | `Mechanism/OneSlotStability.lean` |
+| `cor:sharpspeed` | utility identity composed with `uniformCertificateCoefficients_eq`; no single wrapper declaration | `Racing/SharpCertificate.lean`, `Racing/Spread.lean` |
 | `cor:neartie_dominance` | `neartie_dominance` | `Racing/NearTieDominance.lean` |
+| `cor:neartie_region` | scalar algebra checked by SymPy and SMT; equilibrium inputs outside Lean | manifest nodes `C_neartie_region`, `L_neartie_*` |
 | `cor:luceclass` | premium half: `luceClass_matched_log_premium` | `Mechanism/LuceClass.lean` |
 | `rem:sybilsign` | `twoIdentityTruthfulGain_strictPriority_dichotomy` | `Mechanism/SybilStrictPriority.lean` |
 | `rem:heteroweights` | first clause: `profileCertifiedRule_le_populationValue` | `Frontier/HeterogeneousWeights.lean` |
@@ -264,7 +256,7 @@ manifest and the ledger shipped with the paper's artifact.
 
 ## Where the Lean statement and the printed one differ
 
-In three places the two statements are close without being identical.
+The following scope differences matter when reading the credentials.
 
 **Feasibility of the certified class.** We encode membership in the certified
 class by the permutohedron subset system Σᵢ∈H xᵢ ≤ W₍|H|₎ together with the
@@ -289,111 +281,109 @@ attainment clauses, and we prove that conclusion for *every* class lying
 between the two rules we exhibit and the encoded one. That reduces the whole
 residue to a single statement: those two rules are lottery-implementable.
 
+**The sharp incentive coefficient.** `prop:sharpcertificate` is formalized as
+equality of the sets of admissible uniform window coefficients and uniform
+Lipschitz coefficients for an arbitrary family of monotone allocation slices.
+The extended-real supremum and infimum displayed in the paper present the
+least common coefficient order-theoretically; they are not separate named
+Lean declarations. `cor:sharpspeed` combines this equality with the utility
+derivative identity. Its inputs are formalized, but the combined utility
+statement is not packaged as one declaration.
+
+**The flat-capacity minimax frontier.** The direct-score lower bounds in
+`prop:flatK` are proved for every fixed-mass marginal rule satisfying the
+stated full-vector modulus and uniform regret bound. The proof does not need
+coordinate bounds. The bounded theorem assumes the rule only on `[0,1]^n`
+and does not extend it beyond the cube. `prop:budgetwf` is formalized with its
+exact general-*K* modulus, two-block worst case, and one-slot local spread
+bound. Its displaced-mass inequality holds for every *K*-subset benchmark,
+which is stronger than the printed top-*K* specialization.
+
 **The limit in `thm:meanfield`.** We prove the sandwich
 V\*(W̄ₙ) − b̄w₁/(4√n) ≤ Vₙ(xᴿᴿ) ≤ V\*(W̄ₙ) at every n. We do not state the
 concluding sentence, that per-capita value converges along a sequence with
 W̄ₙ → W̄, as a limit, because getting there needs continuity of the program
 value in the mass cap, and we have not proved that.
 
-**`rem:kernel`, where the mistake was ours.** The scale-family bound is
-certified. The interesting part is which route reaches it, because we first
-took a different one and misdiagnosed the remark as a result. A direct
-two-scale comparison pays for the moving support with the supremum of the
-density near the endpoint, where the printed constant carries only the
-endpoint limit; the two diverge as soon as the density has an interior peak,
-and for a while we recorded the remark as missing a hypothesis. Nothing is
-missing. The remark never compares two scales directly: it computes the local
-rate and integrates it along reports, half the total variation is a metric
-and hence subadditive along a chain of intermediate scales, and in the
-refinement limit the endpoint bound serves every step. What carries a
-credential is now the printed statement under the printed hypotheses. The
-remark's closing sentence we check separately, and it survives: dropping the
-boundary term makes the bound false, with the uniform kernel as witness.
+**The scale-family total-variation bound.** The bound in `rem:kernel` is
+certified by integrating its local total-variation rate. A direct comparison
+of two scales pays for the moving support with the supremum of the density
+near the endpoint, while the printed constant uses the endpoint limit. The
+printed local-rate argument instead integrates along a chain of intermediate
+scales, using the metric property of total variation. The Lean credential
+therefore has the same hypotheses as the printed statement. Dropping the
+boundary term remains false, with the uniform kernel as witness.
 
-## Six things that resisted formalization
+## Scope outside Lean
 
-**Missing from the libraries.** Three want a theorem that neither Mathlib nor
-Econlib has. Clause (v) of `prop:sp_race` wants Kakutani–Fan–Glicksberg for
-locally convex spaces: strategies are distributions over a continuum of
-actions, so the strategy space is infinite dimensional, while the available
-Kakutani theorem is stated for finite-dimensional normed spaces. The lottery
-formulation of the certified class with declining slot weights wants Rado's
-theorem; Mathlib has Birkhoff's theorem but not the majorization step that
-precedes it, so the chain stops one link short, and we prove the equal-weight
-case from scratch. And the first half of `rem:plmeanfield` wants
-concentration for the Kₙ-th order statistic of an exponential race, which
-the libraries do not supply in a usable form.
+The 41 non-assumption nodes without a Lean credential fall into four groups.
 
-**No obstacle, we just did not do it.** Two were within reach and we did not
-reach them. A lottery has to be selected measurably in the bid profile, which
-the paper does by fixing a lexicographic basic feasible decomposition;
-nothing blocks formalizing that and we did not attempt it. The concluding
-limit of `thm:meanfield` needs continuity of the program value in the mass
-cap, an ordinary real-analysis statement that our development does not
-contain.
+**Analytic equilibrium arguments.** The general-*n* and heterogeneous
+strict-priority results use compact-support comparisons, zero-payoff
+classifications, shifted independent copies, and root-cdf equilibrium
+constructions. Their closed-form identities and semialgebraic inequalities
+have SymPy and dual-solver checks, while the measure-theoretic equilibrium
+arguments remain in the paper proof. This group contains `prop:sp_floor_n`,
+`prop:sp_floor_hetero`, and `prop:sp_mixed_n`, together with the general-*n*
+near-tie corollaries.
 
-**Deliberately out of scope.** `prop:mechanism_runtime` is certified at the
-level of an explicit cost model with its asymptotic relations. Going further
-would mean formalizing a concrete heap, a sampler and a random number
-generator. That is a project about standard data structures, and the
-certificate at the end of it would say nothing further about the paper's
-claim.
+**Finite and external checks.** `prop:threebidders` and `lem:gridinterp` use
+the exact rational certificate described above. The mappings to the
+Goldberg–Fanti–Shah frontier and to the order-statistic transformation in
+Betto–Thomas are checked against the cited sources. These checks have their
+own manifest layers and do not receive Lean tags.
 
-**What these absences mean.** One in the first group is a fact about the
-state of the libraries, and it will close as they grow. One in the second is
-a fact about how we spent our time. One in the third is our judgment that the
-marginal certificate is not worth its cost. None of them says the underlying
-mathematics is in doubt. Every one of these statements has an ordinary proof
-in the paper, and the formalization's silence about it is silence, not
-dissent.
+**Library and implementation boundaries.** Clause (v) of `prop:sp_race` uses
+an infinite-dimensional Kakutani–Fan–Glicksberg theorem not supplied by the
+pinned libraries. Lottery implementability for declining slot weights uses
+the majorization step in Rado's theorem and a measurable decomposition.
+`prop:mechanism_runtime` is formalized through its counted-loop cost model;
+concrete heaps, samplers, and random-number generators are outside the
+development.
+
+**Compositions and open endpoints.** Several corollaries combine credentialed
+inputs without a separate wrapper declaration. The finite-*n* sandwich in
+`thm:meanfield` is formalized, while its concluding limit would additionally
+require continuity of the population program in its mass cap. The PL
+large-market limit and the general declining-weight mean-field program remain
+open as stated in the paper. The manifest distinguishes each of these cases
+from an unrecorded omission.
 
 ## Findings
 
-None of this was a stamp applied at the end. Attempting the proofs turned up
-defects and the paper was rewritten around each of them.
+Formalization identified the following hypothesis, scope, and proof-route
+issues. The printed statements and manifest incorporate the corresponding
+repairs.
 
-1. Clause (i) of `prop:rentdissipation` was refuted as originally stated. It
-   now separates a hypothesis-free pointwise bound from a quantitative bound
-   carrying an explicit unbounded-marginal-cost hypothesis, and
-   `rem:coercivity` records that the hypothesis cannot be dropped, on the
-   strength of the counterexample the formalization produced
-   (`Racing/RentDissipationCounterexample.lean`).
-2. The strict-priority clause of `rem:sybilsign` asserted that the
-   two-identity gain vanishes. A machine-checked counterexample shows it
-   equals −w₁(v−r) against no eligible opponent, so the clause was rewritten
-   as a limit depending on the opponents' top order statistic. Both branches
-   are now proved.
-3. A missing ordering hypothesis surfaced while proving a positive-part
-   monotonicity step: the case analysis left exactly the two goals the
-   hypothesis supplies. The statement now carries both, and a downstream
-   burden statement was weakened from monotone to monotone on the
-   nonnegative caps.
-4. Two remarks turned out to be stating an identity without its side
-   condition. The band derivative of `rem:wf_tight` holds when the
-   perturbation leaves the active band intact, which a large enough increment
-   does not; our statement carries that condition. The negative claims of
-   `rem:constant` we state as a contrast between two profiles, since the
-   identity their phrasing invites is a tautology.
-5. `rem:kernel` we recorded for a time as missing a boundary hypothesis. It
-   is not; the section above gives the correction. We keep the episode in the
-   record because the failure mode goes unremarked: a formalization can fail
-   to reproduce a correct argument, and the note it leaves behind reads like
-   a defect report.
-6. The printed proof of part (i) of the inclusion-case capacity law
-   `prop:flatK` originally lowered one of K leaders to the tie level and
-   claimed an n-way tie, which is false for K ≥ 2. The defect was caught
-   while preparing the formalization; both lower bounds now route through
-   `prop:squeeze`, whose Lean counterparts they reuse.
+1. `prop:rentdissipation` (i) separates a hypothesis-free pointwise
+   best-response bound from a uniform quantitative bound requiring unbounded
+   marginal cost. `rem:coercivity` supplies a formal counterexample when that
+   growth condition is dropped.
+2. The strict-priority limit in `rem:sybilsign` depends on the opponents' top
+   order statistic. It is zero when an opponent bids at least the coalition
+   value and equals −w₁(v−r) against no eligible opponent. Both branches are
+   formalized.
+3. A positive-part monotonicity step requires the two ordering hypotheses now
+   stated explicitly. The downstream burden result is correspondingly
+   monotone on nonnegative caps.
+4. The band derivative in `rem:wf_tight` requires the active band to remain
+   unchanged; on a stable band the own-bid map is locally affine. The
+   mass-independence claims in `rem:constant` are formalized as a comparison
+   of two profiles.
+5. `rem:kernel` uses the local-rate argument above. A direct two-scale
+   argument has a different moving-support boundary term and does not certify
+   the printed constant.
+6. For K ≥ 2, lowering one of K leaders to the tie level does not produce an
+   n-way tie. The two lower bounds in `prop:flatK` instead use
+   `prop:squeeze`; the Lean proof follows the same dependency.
 
-## Limits of a machine credential
+## Scope of a machine credential
 
 First, a credential says a Lean statement follows from Mathlib and the
-standard axioms. It does not say the Lean statement is a faithful rendering
-of the English one. That translation is our work rather than the machine's,
-and it is where an error would hide. We wrote the manifest so this layer can
-be audited: every node stores the English statement, the premise set and the
-declaration that discharges it, and every ledger entry says in prose what was
-proved and what was assumed.
+standard axioms. It does not say that the Lean statement is a faithful
+rendering of the English one. The manifest makes that translation auditable
+by storing the English statement, premise set, credential layer, and
+discharging declaration for every node.
 
 Second, none of this speaks to whether the modelling assumptions are the
 right ones, and none of it reaches the empirical sections. The calibration to

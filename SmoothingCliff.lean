@@ -7,6 +7,7 @@ import SmoothingCliff.Frontier.Anonymity
 import SmoothingCliff.Frontier.Extraction
 import SmoothingCliff.Frontier.WaterFilling
 import SmoothingCliff.Frontier.BandDerivative
+import SmoothingCliff.Frontier.FlatKMinimax
 import SmoothingCliff.Frontier.MeanField
 import SmoothingCliff.Frontier.PopulationProgram
 import SmoothingCliff.Frontier.RationedRamp
@@ -42,6 +43,7 @@ import SmoothingCliff.Mechanism.Revenue
 import SmoothingCliff.Mechanism.Sybil
 import SmoothingCliff.Mechanism.SybilStrictPriority
 import SmoothingCliff.Racing.Spread
+import SmoothingCliff.Racing.SharpCertificate
 import SmoothingCliff.Racing.WelfareLoss
 import SmoothingCliff.Racing.GeneralWelfareLoss
 import SmoothingCliff.Racing.PLPermutationLaw

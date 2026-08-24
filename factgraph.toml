@@ -24,6 +24,20 @@
 # lem:welfareloss is stated in Section 4.1 and prop:optcert's objective is displayed
 # in Section 6; both remain unchanged in content. `location` line numbers remain
 # those of the frozen kickoff blob, as before.
+# Source moved 2026-08-24 to blob 9b0ff429473ee183a3dcc6677b965064d76a0947:
+# a presentation-only ITCS refactor that compresses the main text to ten pages and
+# moves secondary statements beside their appendix proofs. No graph statement or
+# premise changed. The main informal theorem now restates the full C_neartie_region
+# condition, and the printed exceptional-rent cap is renamed from overline-U to
+# U_exc to avoid a collision with the sybil-utility notation. Existing `location`
+# line numbers remain those of the frozen kickoff blob.
+# Source moved 2026-08-24 to blob dbc90db9bb9e0800952570b1491c58e3d51fca25:
+# Proposition prop:flatK now gives the all-capacity full-vector frontier within
+# factor 1+(K_- -1)/(n K_+), its bounded-score branch, and the priority-unit
+# normalization. New graph nodes L_flatK_* and P_flatK_near_exact isolate the
+# machine-checked algebra from the analytic symmetrization, complementation, and
+# eligible-region reflection. The first ten pages were then rebalanced around this
+# result; the PL section was compressed and the calibration table moved to page 10.
 # `verified` is added only after the named Lean declaration passes full-file
 # diagnostics and `lean_verify` without sorryAx or an unapproved custom axiom.
 
@@ -164,6 +178,35 @@ verified = ["lean"]
 location = "Smoothing_the_Cliff_ITCS.tex:327 (lem:spread)"
 notes = "Lean 4.30.0: SmoothingCliff.Racing.plMarginalValue_and_spread_bounds, with advantageUtility_hasDerivAt and allocationSpread_bounds. The moving-interval FTC is proved under explicit allocation continuity and a pointwise cost derivative; Lipschitz supplies continuity. Full-file diagnostics and lean_verify were clean; only standard axioms. Ledger: smoothing_cliff_spread_lean_20260813."
 
+[nodes.A_speed_certificate]
+kind = "assumption"
+statement = "Eligible effective inputs form an interval; every own-allocation slice is nondecreasing; additive bid-equivalent advantage shifts the slice input; and the value domain has types arbitrarily close to the reserve from above."
+
+[nodes.L_sharp_window_telescoping]
+fingerprint = "sha256:34794b31b524"
+kind = "lemma"
+statement = "For a monotone allocation slice on an order-connected eligible interval, uniform translated-window bounds over positive admissible lengths accumulating at zero are equivalent to the global Lipschitz bound with the same coefficient."
+depends_on = ["A_speed_certificate"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (proof of prop:sharpcertificate, finite-difference telescoping core)"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.monotone_lipschitzOnWith_iff_window_bounds, supported by monotone_window_telescope_le and monotone_sub_le_of_arbitrarily_small_windows. The formal theorem works on an arbitrary order-connected real interval and does not assume differentiability. Full-file diagnostics and lean_verify source scans were clean; only standard axioms. Ledger: smoothing_cliff_sharp_window_certificate_lean_20260824."
+
+[nodes.P_sharp_certificate]
+fingerprint = "sha256:e2c2a4889e25"
+kind = "proposition"
+statement = "The sharp eligible-region own-input Lipschitz modulus equals the supremum of normalized admissible additive-advantage allocation windows, equivalently the smallest uniform coefficient bounding every such window."
+depends_on = ["A_speed_certificate", "L_sharp_window_telescoping"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:sharpcertificate; proof in Appendix C.1)"
+notes = "Lean 4.30.0: SmoothingCliff.Racing.uniformCertificateCoefficients_eq proves equality of the sets of admissible uniform coefficients for an arbitrary family of monotone slices, supported by L_sharp_window_telescoping. Equality of their least coefficients is therefore immediate; the paper displays the same object as extended-real suprema and an infimum. Full-file diagnostics and source scans were clean; only standard axioms. Ledger: smoothing_cliff_sharp_window_certificate_lean_20260824."
+
+[nodes.C_sharp_speed]
+kind = "corollary"
+statement = "In the additive bid-equivalent latency model, the sharp eligible-region Lipschitz modulus is the smallest uniform coefficient bounding the gross marginal value of speed after normalization by the value premium over reserve."
+depends_on = ["P_sharp_certificate", "L_spread"]
+location = "Smoothing_the_Cliff_ITCS.tex (cor:sharpspeed; proof in Appendix C.1)"
+notes = "The allocation-window equivalence is Lean-credentialed by L_sharp_window_telescoping and the utility derivative by L_spread. The final common-supremum wrapper inherits the scope note on P_sharp_certificate; no node-level Lean tag is claimed."
+
 [nodes.L_welfareloss_one_slot]
 fingerprint = "sha256:ef2e4e7690c7"
 kind = "lemma"
@@ -220,6 +263,150 @@ notes = "Lean 4.30.0: SmoothingCliff.Mechanism.fullPaymentVector_lipschitz, with
 [nodes.A_strict_priority_race]
 kind = "assumption"
 statement = "Two agents choose nonnegative bid-equivalent latency advantages in the common-value strict-priority race with band G=v-r>0, slot weight w1>0, and linear marginal cost kappa>0."
+
+[nodes.A_strict_priority_race_n]
+kind = "assumption"
+statement = "There are n>=2 common-value agents and one slot with G=v-r>0 and w1>0; agents independently mix over nonnegative bid-equivalent advantages, ties earn no gross margin, and each unit of advantage costs a common kappa in (0,w1)."
+
+[nodes.L_general_n_zero_payoff]
+kind = "lemma"
+statement = "In every Borel mixed Nash equilibrium of the general-n strict-priority race, equilibrium supports are compact and at least n-1 agents have zero expected payoff."
+depends_on = ["A_strict_priority_race_n"]
+location = "Smoothing_the_Cliff_ITCS.tex (proof of prop:sp_floor_n, lower-support argument)"
+notes = "A support minimum is a best response by continuity. Every player except possibly the unique one with the largest lower support faces an opponent weakly above that minimum almost surely, so the minimum earns no gross margin; deviation to zero forces both the minimum and the payoff to be zero. Rethlas-structured self-audit only; no independent verifier credential or Lean formalization has been issued."
+
+[nodes.L_general_n_floor_algebra]
+fingerprint = "sha256:21b63f5324cb"
+kind = "lemma"
+statement = "For q in (0,1), J=floor(1/q), and varsigma=Jq, the window expression kappa G[J-qJ(J+1)/2] equals (w1 G/2) varsigma(2-varsigma-q), and varsigma(2-varsigma-q)>=1-q because 1-q<varsigma<=1."
+depends_on = []
+verified = ["sympy", "z3", "cvc5"]
+location = "Smoothing_the_Cliff_ITCS.tex (proof of prop:sp_floor_n, scalar reduction)"
+notes = "Exact SymPy factorization and independent Z3/cvc5 unsatisfiability checks. Ledgers: smoothing_cliff_general_n_racing_algebra_sympy_20260823 and smoothing_cliff_general_n_racing_floor_smt_20260823. The attempted exact SOS-on-a-box relaxation did not certify the boundary product and was recorded separately; it is a limitation of that relaxation, not a counterexample."
+
+[nodes.L_general_n_window_floor]
+kind = "lemma"
+statement = "A zero-payoff bidder's adjacent value-band deviation inequalities lower-bound the expected maximum opponent advantage by G[J-qJ(J+1)/2], and hence lower-bound aggregate dissipation by (w1 G/2) varsigma(2-varsigma-q)."
+depends_on = ["A_strict_priority_race_n", "L_general_n_zero_payoff", "L_general_n_floor_algebra"]
+location = "Smoothing_the_Cliff_ITCS.tex (proof of prop:sp_floor_n, equations R1 and following)"
+notes = "The analytic steps are layer-cake integration, summation over the partition [0,JG], the tail formula, and max_{j!=i} A_j <= sum_{j!=i} A_j. Rethlas-structured self-audit only; the machine credential on L_general_n_floor_algebra covers the scalar algebra, not these measure-theoretic steps."
+
+[nodes.L_general_n_window_relaxation]
+fingerprint = "sha256:a616bb203599"
+kind = "lemma"
+statement = "The monotone staircase tail g=1-kq on [k-1,k), truncated after J=floor(1/q), satisfies every one-band window constraint and has integral J-qJ(J+1)/2, so the one-zero-bidder relaxation cannot improve the asymptotic one-half constant."
+depends_on = ["A_strict_priority_race_n"]
+verified = ["sympy"]
+location = "Smoothing_the_Cliff_ITCS.tex (proof of prop:sp_floor_n, paragraph after R1)"
+notes = "SymPy checks the interior identity, terminal slack, and finite sum. Ledger: smoothing_cliff_genn_window_lp_sympy_20260823. This is a statement about the one-player relaxation, not sharpness of the finite-cost game."
+
+[nodes.L_general_n_shifted_copy]
+kind = "lemma"
+statement = "An independent own-strategy copy shifted upward by G implies aggregate expected gross margin R >= w1 G-n kappa G in every equilibrium."
+depends_on = ["A_strict_priority_race_n"]
+location = "Smoothing_the_Cliff_ITCS.tex (proof of prop:sp_floor_n, equation R2)"
+notes = "The deviation earns the full band on the weak-maximum event. Summing counts at least one weak maximizer at every action profile, so common atoms require no separate treatment. Internal Rethlas-structured audit only; no independent verifier or Lean credential."
+
+[nodes.L_general_n_rent_cap]
+kind = "lemma"
+statement = "At most one equilibrium payoff is positive, and that exceptional payoff is at most kappa G."
+depends_on = ["A_strict_priority_race_n", "L_general_n_zero_payoff"]
+location = "Smoothing_the_Cliff_ITCS.tex (proof of prop:sp_floor_n, equations R3-R4)"
+notes = "A zero-payoff bidder deviates one full band above the positive-payoff bidder's upper support. The event supporting the positive bidder's gross return is contained in the deviation event. Internal Rethlas-structured audit only; no independent verifier or Lean credential."
+
+[nodes.L_general_n_global_algebra]
+fingerprint = "sha256:54137e25eb0d"
+kind = "lemma"
+statement = "If R>=w1 G-n kappa G, total equilibrium rent lies in [0,kappa G], and D=R-U, then D>=w1 G-(n+1)kappa G."
+depends_on = []
+verified = ["z3", "cvc5"]
+location = "Smoothing_the_Cliff_ITCS.tex (proof of prop:sp_floor_n, equation R5 and following)"
+notes = "Independent Z3 and cvc5 unsatisfiability checks of the negation. Ledger: smoothing_cliff_general_n_racing_global_bound_smt_20260823. The credential covers the terminal linear implication, not the analytic deviation lemmas."
+
+[nodes.P_sp_floor_n]
+kind = "proposition"
+statement = "Every pure or independent Borel mixed Nash equilibrium of the n-bidder common-value strict-priority race has at least n-1 zero-payoff agents and dissipation between w1 G times the maximum of the window floor and 1-(n+1)q, and w1 G; consequently fixed-n dissipation converges uniformly over equilibrium selection to w1 G as kappa tends to zero."
+depends_on = ["A_strict_priority_race_n", "L_general_n_zero_payoff", "L_general_n_window_floor", "L_general_n_shifted_copy", "L_general_n_rent_cap", "L_general_n_global_algebra"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:sp_floor_n)"
+notes = "Strengthened 2026-08-23. The finite-cost window floor and the aggregate full-dissipation bound use different arguments. The proof avoids symmetry and a classification of asymmetric equilibria. The authors must independently re-derive this AI-assisted proof before submission; no Lean or independent Rethlas credential has been issued."
+
+[nodes.L_general_n_root_cdf]
+kind = "lemma"
+statement = "Taking the (n-1)-st root of the two-bidder lattice cdf makes the maximum of n-1 independent opponent draws have exactly the two-bidder law, so every pure-deviation payoff is transported unchanged."
+depends_on = ["A_strict_priority_race_n", "P_sp_mixed"]
+location = "Smoothing_the_Cliff_ITCS.tex (proof of prop:sp_mixed_n, root-cdf identity)"
+notes = "The identity is checked directly in the paper, including the atomic support and zero terminal-mass boundary. Betto and Thomas (2024) supplies the methodological order-statistic foundation but is not invoked as a black-box theorem. Rethlas-structured self-audit only."
+
+[nodes.L_general_n_limit_integral]
+fingerprint = "sha256:067fcd3470f0"
+kind = "lemma"
+statement = "For fixed n>=2, integral from zero to one of 1-x^(1/(n-1)) equals 1/n, which is the limit of the symmetric equilibrium's normalized finite tail sum as q tends to zero."
+depends_on = []
+verified = ["sympy"]
+location = "Smoothing_the_Cliff_ITCS.tex (proof of prop:sp_mixed_n, final Riemann sum)"
+notes = "SymPy integrated the general positive exponent exactly and both symbolic residuals reduced to zero. Ledger: smoothing_cliff_general_n_racing_limit_integral_sympy_20260823. The convergence from the finite sum to the integral is an analytic Riemann-sum step and is not covered by this credential."
+
+[nodes.L_two_bidder_symmetric_unique]
+kind = "lemma"
+statement = "The lattice law F2 is the unique symmetric two-bidder equilibrium cdf."
+depends_on = ["A_strict_priority_race_n", "L_general_n_zero_payoff", "P_sp_mixed"]
+location = "Smoothing_the_Cliff_ITCS.tex (proof of prop:sp_mixed_n, support recursion R6)"
+notes = "The induction fixes mass q at each integer until the terminal residual. Its invariant and the no-return argument after a sub-q atom are printed explicitly. Internal Rethlas-structured audit only; the finite-grid Z3 diagnostic is not a continuous-action credential."
+
+[nodes.L_general_n_symmetric_unique]
+kind = "lemma"
+statement = "If F is a common cdf in a fully symmetric n-bidder equilibrium, then H=F^(n-1) is a symmetric two-bidder equilibrium cdf with the same support, so H=F2 and F is the root-cdf law."
+depends_on = ["A_strict_priority_race_n", "L_general_n_root_cdf", "L_two_bidder_symmetric_unique"]
+location = "Smoothing_the_Cliff_ITCS.tex (proof of prop:sp_mixed_n, paragraph after R6)"
+notes = "The strictly increasing power map preserves topological support. Internal Rethlas-structured audit only; no independent verifier or Lean credential."
+
+[nodes.L_general_n_active_subset]
+kind = "lemma"
+statement = "For each 2<=m<=n, any chosen m bidders using the m-bidder root-cdf law while the others choose zero form an equilibrium."
+depends_on = ["A_strict_priority_race_n", "P_sp_mixed", "L_general_n_root_cdf"]
+location = "Smoothing_the_Cliff_ITCS.tex (proof of prop:sp_mixed_n, final paragraph)"
+notes = "An active bidder faces F2 as the opponent-maximum cdf; an inactive bidder faces (F2)^(m/(m-1))<=F2 and therefore a stochastically tougher maximum. Internal Rethlas-structured audit only."
+
+[nodes.P_sp_mixed_n]
+kind = "proposition"
+statement = "The (n-1)-st root of the two-bidder lattice cdf is the unique fully symmetric n-bidder equilibrium, with zero payoffs, the displayed exact dissipation and fixed-n full-dissipation limit; for every 2<=m<=n there are also active-subset equilibria with m root-cdf bidders and all others inactive."
+depends_on = ["A_strict_priority_race_n", "P_sp_mixed", "L_general_n_root_cdf", "L_general_n_floor_algebra", "L_general_n_limit_integral", "L_two_bidder_symmetric_unique", "L_general_n_symmetric_unique", "L_general_n_active_subset"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:sp_mixed_n)"
+notes = "Strengthened 2026-08-23. The exact mass and tail-sum calculations were checked symbolically, while equilibrium existence, continuous-action symmetric uniqueness, and the Riemann-sum argument received an internal Rethlas-structured self-audit only. No full asymmetric-equilibrium classification or Lean credential is claimed."
+
+[nodes.L_general_n_finite_floor_counterexample]
+fingerprint = "sha256:ed8ecf8f1a38"
+kind = "lemma"
+statement = "At n=3 and q=2/5, root-cdf symmetric dissipation equals (6/5)(2-sqrt(2/5)-sqrt(4/5))w1G and is strictly below (1-q)w1G."
+depends_on = ["P_sp_mixed_n"]
+verified = ["sympy"]
+location = "Smoothing_the_Cliff_ITCS.tex (Open Problems, asymmetric many-bidder racing)"
+notes = "Exact algebraic-number comparison. Ledger: smoothing_cliff_general_n_racing_finite_floor_counterexample_sym. This rules out extending the two-bidder finite-cost floor unchanged to n>=3."
+
+[nodes.L_general_n_tradeoff_algebra]
+fingerprint = "sha256:394442cd3259"
+kind = "lemma"
+statement = "At S_eta=(1-eta)kappa/G, the one-slot minimax lower bound and water-filling upper bound scale as w1^2 G/[4(1-eta)kappa] and differ by the factor n/(n-1)."
+depends_on = []
+verified = ["sympy"]
+location = "Smoothing_the_Cliff_ITCS.tex (cor:neartie_n, part ii)"
+notes = "Exact symbolic substitution and rational simplification. Ledger: smoothing_cliff_genn_tradeoff_sympy_20260823."
+
+[nodes.C_neartie_n]
+kind = "corollary"
+statement = "At the strict no-race certificate S_eta=(1-eta)kappa/G, zero investment is unique; the one-slot minimax certificate price lies between the displayed frontier bounds; and at a common-value tie water-filling exceeds every strict-priority equilibrium's net surplus by its dissipation, which converges uniformly to w1 G. One-slot PL has the same no-race comparison for tau>w1 G/(4 kappa)."
+depends_on = ["P_sharp_certificate", "C_sharp_speed", "T_pos", "P_flatK", "P_sp_floor_n", "C_tight_K1", "L_general_n_tradeoff_algebra"]
+location = "Smoothing_the_Cliff_ITCS.tex (cor:neartie_n)"
+notes = "The strictness margin eta and strict PL temperature inequality are retained because equality of the marginal certificate and linear cost need not give a unique best response. Worst-case certificate price and same-profile common-value gain remain under separate quantifiers. Outside the current Lean development; internal Rethlas-structured audit only."
+
+[nodes.L_betto_root_cdf_context]
+fingerprint = "sha256:4eb1e190bcdb"
+kind = "lemma"
+statement = "Betto and Thomas (2024), Theorem 4 and equation (12), use an order-statistic transformation whose one-prize specialization maps an individual cdf G to the highest-opponent cdf G^(n-1); their smooth positive-tie-prize assumptions do not directly cover the paper's atomic capped-margin race."
+depends_on = []
+verified = ["litcheck"]
+location = "Smoothing_the_Cliff_ITCS.tex (Related Work, Latency Racing in Transaction Ordering)"
+notes = "Checked against the official Theoretical Economics article. Ledger: smoothing_cliff_general_n_racing_betto_litcheck_20260823. The paper cites the construction as methodological foundation and verifies its own best responses directly."
 
 [nodes.P_sp_race_pure]
 fingerprint = "sha256:710593914779"
@@ -420,7 +607,7 @@ kind = "proposition"
 statement = "In rem:sybilsign the truthful two-identity gain has a strict-priority limit that depends on the opponents top order statistic: zero when some opponent bids at least the coalition value, and minus w1 times the contested band against no eligible opponent."
 depends_on = ["A_pl_process", "P_payment_identity"]
 verified = ["lean"]
-location = "Smoothing_the_Cliff_ITCS.tex (rem:sybilsign)"
+location = "Smoothing_the_Cliff_ITCS.tex (proposition; label rem:sybilsign)"
 notes = "Paper text repaired 2026-08-13. The earlier sentence asserted without qualification that the gain vanishes in the strict-priority limit by second-price logic, and contradicted the same remark's own statement that the gain is negative for a sufficiently dominant coalition. Lean verified the zero-opponent closed form and its limit minus w1 times (v minus r): SmoothingCliff.Mechanism.twoIdentityTruthfulGain_zeroCongestion_closedForm, twoIdentityTruthfulGain_zeroCongestion_tendsto, and twoIdentityTruthfulGain_zeroCongestion_strictPriority_counterexample (ledger smoothing_cliff_sybil_strict_priority_counterexample_lean_20260813). BOTH HALVES ARE NOW CREDENTIALED (2026-08-14): Mechanism/SybilStrictPriority.lean twoIdentityTruthfulGain_strictPriority_tendsto_of_top_bid gives the congested branch, the gain vanishing as the temperature falls once some opponent bids at least the coalition value, by dominated convergence on the contested band, and twoIdentityTruthfulGain_strictPriority_dichotomy packages it with the earlier zero-opponent limit and records that the two limits differ. Ledger: smoothing_cliff_sybil_strict_priority_lean_20260814."
 
 
@@ -771,7 +958,7 @@ kind = "proposition"
 statement = "For a self-resampling scheme whose conditional allocation kernel is a scale family with a continuously differentiable density and finite endpoint limit, half the total variation between the kernels at two scales is at most c_g times the logarithm of the scale ratio, hence at most c_g times the scale gap over the reserve on the eligible region, with c_g the half sum of the density variation and the boundary term; dropping the boundary term from c_g makes the bound false."
 depends_on = ["A_wrapper", "L_wrapper_cert"]
 verified = ["lean"]
-location = "Smoothing_the_Cliff_ITCS.tex (rem:kernel)"
+location = "Smoothing_the_Cliff_ITCS.tex (proposition; label rem:kernel)"
 notes = "Lean 4.30.0: SmoothingCliff.Wrapper.ScaleGen, scaleDensity, scaleKernel, halfL1, l1_scaleDensity_decomposition, overlap_le_varA_mul_log, boundary_eq_inv_integral, halfL1_scaleDensity_le, halfL1_scaleDensity_triangle, halfL1_geom_chain, tendsto_nat_mul_exp_sub_one, halfL1_scaleDensity_le_log, halfL1_scaleDensity_le_cg, halfL1_scaleDensity_le_cg_reserve, eventually_halfL1_le_local_rate, halfL1_uniform, uniform_not_le_varA_only, tvLipschitzKernel_scaleKernel_cg, wrapper_certificate_scaleKernel in Wrapper/ScaleKernelTV.lean. The exact L1 decomposition into an overlap term and a boundary term replaces the differentiation of a moving-support density that made this remark look heavy, and a telescoping Phi-primitive identity avoids Fubini. That direct route bounds the finite difference with the supremum of g near the endpoint rather than with g(1-), so a first pass carried an endpoint-domination hypothesis and the remark was recorded as missing one. That was wrong, and it is the paper's route that is right: half the L1 distance is a metric, so it is subadditive along a geometric chain of intermediate scales whose steps all share one ratio, and as the chain refines the sliver bound falls back to g(1-) by continuity while n(lambda^(1/n) - 1) falls to log lambda. The limit is c_g log lambda, and log lambda at most lambda - 1 gives the displayed c_g (b' - b)/r with no extra hypothesis. uniform_not_le_varA_only confirms the remark's closing sentence by refuting the boundary-free constant: for the uniform kernel at b=1, b'=3/2 half the total variation is 1/3 against a claimed 1/4. Full-file diagnostics: no findings, no warnings; axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_scale_kernel_tv_lean_20260817."
 
 [nodes.R_constant]
@@ -798,7 +985,7 @@ kind = "proposition"
 statement = "When the principal prices burned resources alone, the optimal cap is the cube root of the squared prize over aggregate racing capacity, it is unique, and the total certified concession is three halves of the quadratic racing term there."
 depends_on = ["L_optcert_analytic"]
 verified = ["lean"]
-location = "Smoothing_the_Cliff_ITCS.tex (rem:optcert_cubic)"
+location = "Smoothing_the_Cliff_ITCS.tex (proposition; label rem:optcert_cubic)"
 notes = "Lean 4.30.0: SmoothingCliff.Racing.dissipationOnlyCost, dissipationOnlyMarginal, dissipationOnlyCost_hasDerivAt, dissipationOnlyMarginal_strictMonoOn, cubic_of_isMinOn, dissipationOnlyCost_unique_minimizer, concession_eq_quadratic_of_cubic, and dissipationOnlyCost_eq_of_cubic in Racing/OptimalCapCubic.lean. The optimum is characterized by the cubic 4 * Gamma2 * cap^3 = w1^2 rather than by a real cube root, which keeps the value identity exact: at the optimum the smoothing concession equals the quadratic racing term, so the total is three halves of either. Uniqueness comes from strict monotonicity of the marginal rather than from a convexity library lemma. Full-file diagnostics: no findings; lean_verify scan_source=true: no warnings, axioms only propext/Classical.choice/Quot.sound. Ledger: smoothing_cliff_optcert_cubic_lean_20260813."
 
 
@@ -806,7 +993,7 @@ notes = "Lean 4.30.0: SmoothingCliff.Racing.dissipationOnlyCost, dissipationOnly
 kind = "proposition"
 statement = "In the large-market inclusion case the PL rule's allocation curve is w1 times one minus the exponential of minus theta times the intensity, with theta the market-clearing time; the curve is feasible for the ex-ante program but is not the ramp, so it is strictly inside the frontier for atomless value distributions."
 depends_on = ["T_meanfield", "A_pl_process"]
-location = "Smoothing_the_Cliff_ITCS.tex (rem:plmeanfield)"
+location = "Smoothing_the_Cliff_ITCS.tex (proposition; label rem:plmeanfield)"
 notes = "SECOND HALF CREDENTIALED 2026-08-14: Frontier/PLMeanFieldCurve.lean existsUnique_plClock gives the market-clearing time, plCurve_curveFeasible gives admissibility for the population programme under the matched certificate (the Lipschitz bound is exactly w1/(e tau) because the maximum of x exp(-x) is 1/e), and plCurve_welfare_lt_populationValue gives strict suboptimality for an atomless law through the uniqueness clause of part (ii). STILL OPEN: the first half, that this curve is the large-market limit of the race K_n-th order statistic, which needs the concentration argument; the curve is taken as defined rather than derived. The numerical wedge table is a separate calculation. Ledger: smoothing_cliff_pl_meanfield_curve_lean_20260814."
 
 [nodes.R_classscope]
@@ -918,3 +1105,224 @@ statement = "At K=1 a sequential Luce rule with increasing C1 intensity satisfie
 depends_on = ["P_luceopt", "T_pos"]
 location = "Smoothing_the_Cliff_ITCS.tex (cor:luceclass, added 2026-08-17)"
 notes = "PARTIAL LEAN COVERAGE, no node-level credential: the premium half is certified as a composition of the within-Luce optimality and the matched log-trailer witness, plus a reserve-cancellation bridge (SmoothingCliff.LuceOptimality.{oneSlotLuceWelfare_exponential_eq_PL, luceClass_matched_log_premium}; ledger smoothing_cliff_luceclass_premium_lean_20260818). The iff-equivalence half rests on the recorded one-slot derivative computation (oneSlotLuceProbability machinery) and is not separately composed."
+
+[nodes.L_budgetwf_active_modulus]
+fingerprint = "sha256:ad03c52fe2dc"
+kind = "lemma"
+statement = "Capped-simplex water-filling with internal slope a has exact eligible-region own-coordinate modulus a(1-1/n): on an active set of size m the own derivative is a(1-1/m), continuity and piecewise affinity give the global bound, and an n-way interior tie attains it."
+depends_on = ["A_frontier_domain", "A_frontier_rule"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (proof of prop:budgetwf, active-set argument)"
+notes = "Lean 4.30.0: SmoothingCliff.Frontier.waterFillingSelection_own_lipschitz_exact proves the global factor a(1-1/n) for any fixed-mass threshold selector, and waterFillingSelection_flatK_tie_attains_exact_modulus supplies an attaining positive chord for every 1<=K<n. Full-vector telescoping is waterFillingSelection_fullVector_l1_le. Full-file diagnostics and lean_verify source scans were clean; only standard axioms. Ledger: smoothing_cliff_budgetwf_exact_modulus_flatk_lean_20260824."
+
+[nodes.L_budgetwf_rescaling_algebra]
+fingerprint = "sha256:1717e5865dc3"
+kind = "lemma"
+statement = "The budget-spending slope is n*S/(n-1) in priority units; substituting it makes the unbounded finite-n K=1 loss equal the lower certificate, gives the displayed general-K upper bound, and in bounded review units makes both K=1 regret branches equal the Goldberg-Fanti-Shah lower bound."
+depends_on = []
+verified = ["sympy"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:budgetwf and proof)"
+notes = "SymPy 1.14 exact symbolic cancellation, eight residuals zero in verify_smoothing_cliff_exact_frontier.py. Ledger: smoothing_cliff_exact_one_slot_rescaling_sympy_v2_20260824. Scope is algebra only."
+
+[nodes.L_goldberg_one_selection_gap]
+fingerprint = "sha256:715198dfbf16"
+kind = "lemma"
+statement = "Goldberg, Fanti, and Shah define full marginal-vector review smoothness, prove the two displayed one-selection lower-bound branches, use a clipped-linear slope leaving the factor 1-1/n of the budget unspent, and explicitly leave the resulting smoothness-regret gap open."
+depends_on = []
+verified = ["litcheck"]
+location = "Smoothing_the_Cliff_ITCS.tex (discussion after prop:budgetwf and Related Work)"
+notes = "Direct source inspection recorded in ledger smoothing_cliff_goldberg_smoothness_gap_litcheck_20260824."
+
+[nodes.P_budgetwf]
+fingerprint = "sha256:a69b75b7085f"
+kind = "proposition"
+statement = "Budget-spending water-filling with internal slope n*S/(n-1) has actual modulus S, exact inclusion loss K(n-K)(n-1)w1^2/[4n^2S], and at K=1 attains the exact minimax loss (1-1/n)^2w1^2/(4S), with the stated profile-spread upper bound."
+depends_on = ["T_pos", "P_flatK", "L_budgetwf_active_modulus", "L_budgetwf_rescaling_algebra"]
+verified = ["lean", "sympy"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:budgetwf)"
+notes = "Lean 4.30.0 packages the published slope in budgetSpentSensitivity and proves exact own modulus with tie attainment (budgetSpent_flatK_own_modulus_exact), exact all-profile loss with two-block attainment (budgetSpent_flatK_regret_exact), and the one-slot profile-spread bound (flatKWaterFillingSelection_oneSlot_local_regret_le). The K=1 universal lower endpoint is T_pos. Physical-unit cancellation is independently checked by SymPy. Full-file diagnostics, source scans, and the 3576-job build were clean; only standard axioms. Ledger: smoothing_cliff_budgetwf_full_wrapper_lean_20260824."
+
+[nodes.A_flatK_smooth_selection]
+kind = "assumption"
+statement = "For n>=2 and 1<=K<n, a direct-score marginal rule maps every score vector to H_(n,K)={p in [0,1]^n: sum p_i=K}, has full-vector l1 modulus Lambda, and is evaluated by regret against deterministic top-K selection; the bounded variant restricts scores to [0,1]^n."
+
+[nodes.L_flatK_symmetrization]
+fingerprint = "sha256:985e6c35a0a1"
+kind = "lemma"
+statement = "Averaging any fixed-cardinality smooth selection rule over candidate permutations preserves exact mass and the full-vector modulus, and its regret at each profile is the average original-rule regret over permuted profiles, so worst-case regret does not increase."
+depends_on = ["A_flatK_smooth_selection"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (proof of prop:flatK, symmetrization step)"
+notes = "Lean 4.30.0: SmoothingCliff.Frontier.symmetrizeScoreRule_equivariant, symmetrizeScoreRule_mass, symmetrizeScoreRule_l1_le, and symmetrizeScoreRule_regret_le. The cube-restricted counterparts avoid extending a bounded-domain rule. Full-file diagnostics and source scans were clean; only standard axioms. Ledger: smoothing_cliff_flatk_minimax_lower_lean_20260824."
+
+[nodes.L_flatK_adjacent_mass]
+fingerprint = "sha256:0f2cdc74d896"
+kind = "lemma"
+statement = "At the adjacent profiles with K-1 and K high scores, exact mass reduces the l1 movement to |vartheta|+(|Gamma+vartheta|+|K_c*vartheta-Gamma|)/(K_c+1), where K_c=n-K, Gamma=n*pi_H^+-K, and vartheta=(K-1)(pi_H^--pi_H^+)."
+depends_on = ["A_flatK_smooth_selection", "L_flatK_symmetrization"]
+verified = ["sympy", "lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (proof of prop:flatK, adjacent-profile mass identities)"
+notes = "SymPy 1.14 exact cancellation in verify_smoothing_cliff_intermediate_frontier.py (ledger smoothing_cliff_flatk_adjacent_mass_sympy_v5_20260824). Lean 4.30.0 independently proves the mass equations and exact reduction in SmoothingCliff.Frontier.equivariantScoreRule_adjacent_mass_equations_of_profile_mass and flatK_adjacent_mass_reduction (ledger smoothing_cliff_flatk_minimax_lower_lean_20260824)."
+
+[nodes.L_flatK_adjacent_tv]
+fingerprint = "sha256:cf66525b0d0e"
+kind = "lemma"
+statement = "For Gamma>=0 and K_c>=0, (K_c+1)|vartheta|+|Gamma+vartheta|+|K_c*vartheta-Gamma|>=2Gamma."
+depends_on = ["L_flatK_adjacent_mass"]
+verified = ["z3", "cvc5", "lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (proof of prop:flatK, two triangle inequalities)"
+notes = "Z3 5.1.0 and cvc5 1.3.4 independently found the negation unsatisfiable through hz_certify.decide; verify_smoothing_cliff_intermediate_frontier.py (ledger smoothing_cliff_flatk_adjacent_tv_smt_v5_20260824). Lean 4.30.0 proves the same inequality as SmoothingCliff.Frontier.flatK_adjacent_tv_lower (ledger smoothing_cliff_flatk_minimax_lower_lean_20260824)."
+
+[nodes.L_flatK_adjacent_cap]
+fingerprint = "sha256:bb8977172097"
+kind = "lemma"
+statement = "Combining the adjacent-profile mass expression, the absolute-value inequality, and full-vector smoothness caps the K-high probability by K/n+(K_c+1)Lambda*Delta/(2n), hence gives the displayed one-branch regret quadratic."
+depends_on = ["A_flatK_smooth_selection", "L_flatK_adjacent_mass", "L_flatK_adjacent_tv"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (proof of prop:flatK, adjacent-profile probability cap)"
+notes = "Lean 4.30.0: SmoothingCliff.Frontier.flatK_adjacent_branch_certificate and equivariantScoreRule_adjacent_branch_of_profile_bounds compose exact mass, full-vector smoothness, and the absolute-value inequality into the probability cap and actual Top-K regret quadratic. Ledger: smoothing_cliff_flatk_minimax_lower_lean_20260824."
+
+[nodes.L_flatK_complement]
+fingerprint = "sha256:3a584d4c5bc1"
+kind = "lemma"
+statement = "The exclusion transformation p_exc(y)=1-p(-y) on the unbounded domain, and p_exc(y)=1-p(1-y) on the unit cube, swaps K with n-K while preserving exact mass, full-vector modulus, and regret; taking the larger of the two adjacent branches yields the K_-,K_+ lower bound."
+depends_on = ["A_flatK_smooth_selection", "L_flatK_adjacent_cap"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (proof of prop:flatK, exclusion step)"
+notes = "Lean 4.30.0: the unbounded and cube benchmark identities are topKScore_complement_negate and topKScore_complement_oneMinus; excludeScoreRule and excludeCubeRule preserve mass, full-vector modulus, and actual Top-K regret. The local cube theorem uses only reflected cube profiles. Ledger: smoothing_cliff_flatk_minimax_lower_lean_20260824."
+
+[nodes.L_flatK_priority_bridge]
+fingerprint = "sha256:d2e668b1c59b"
+kind = "lemma"
+statement = "For exact-mass monotone cross-monotone priority rules, a one-coordinate change has full l1 movement twice the mover's change, so own modulus S gives full-vector modulus 2S/w1; reflecting inside an eligible interval supplies the exclusion branch without extending bids below the reserve."
+depends_on = ["L_flatK_adjacent_cap", "L_flatK_complement"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (proof of prop:flatK, priority normalization)"
+notes = "Lean 4.30.0: SmoothingCliff.Frontier.fixedMass_l1_update_eq_twice, flatK_priority_probability_fullVector_l1_le, constantMinusVector_stays_eligible, and excludeAffineRule_topK_regret_eq. Full-file diagnostics and source scans were clean; only standard axioms. Ledger: smoothing_cliff_flatk_priority_bridge_lean_20260824."
+
+[nodes.L_flatK_unbounded_lower]
+fingerprint = "sha256:ae1201ee244b"
+kind = "lemma"
+statement = "Every fixed-cardinality full-vector-Lambda-Lipschitz score rule whose regret is uniformly at most R satisfies K_- K_+^2/[2 Lambda n(K_++1)] <= R on the unbounded score domain."
+depends_on = ["A_flatK_smooth_selection", "L_flatK_symmetrization", "L_flatK_adjacent_cap", "L_flatK_complement"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:flatK(i), lower endpoint)"
+notes = "Lean 4.30.0: SmoothingCliff.Frontier.scoreRule_allCapacity_lower. The theorem quantifies over an arbitrary rule and uniform regret bound, uses the actual deterministic Top-K benchmark, symmetrizes internally, and covers every 1<=K<n. Full-file diagnostics and lean_verify were clean; only standard axioms. Ledger: smoothing_cliff_flatk_minimax_lower_lean_20260824."
+
+[nodes.L_flatK_cube_lower]
+fingerprint = "sha256:08dd45324190"
+kind = "lemma"
+statement = "For a rule defined and smooth only on [0,1]^n, the all-capacity adjacent-profile certificate yields the unbounded lower endpoint when Lambda>=K_+/(K_++1), and K_-/n [K_+-(K_++1)Lambda/2] below that threshold."
+depends_on = ["A_flatK_smooth_selection", "L_flatK_symmetrization", "L_flatK_adjacent_cap", "L_flatK_complement"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:flatK(ii))"
+notes = "Lean 4.30.0: SmoothingCliff.Frontier.scoreRule_cube_allCapacity_lower. Its hypotheses are restricted to InUnitCube profiles; cube symmetrization and reflection never call the rule outside [0,1]^n. Full-file diagnostics and lean_verify were clean; only standard axioms. Ledger: smoothing_cliff_flatk_minimax_lower_lean_20260824."
+
+[nodes.L_flatK_frontier_algebra]
+fingerprint = "sha256:bd1f873e254f"
+kind = "lemma"
+statement = "Given the two adjacent-profile branch formulas and the projection loss, exact optimization, projection rescaling, and conversion to priority units give the displayed endpoints, bounded-score branch, and approximation ratio 1+(K_- -1)/(n K_+)."
+depends_on = ["L_flatK_adjacent_cap", "L_flatK_complement", "L_flatK_priority_bridge", "L_budgetwf_rescaling_algebra"]
+verified = ["sympy"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:flatK and proof, algebraic reductions)"
+notes = "SymPy 1.14 exact cancellation plus an exact rational sweep over 780 capacities in verify_smoothing_cliff_intermediate_frontier.py. Ledger: smoothing_cliff_flatk_frontier_algebra_sympy_v5_20260824. The formerly analytic symmetrization, complement, and two lower regimes now have separate Lean credentials."
+
+[nodes.L_goldberg_intermediate_gap]
+fingerprint = "sha256:94a7293efc27"
+kind = "lemma"
+statement = "Goldberg, Fanti, and Shah define fixed-cardinality full marginal-vector smoothness, prove a high-smoothness lower bound smaller than their Clipped Linear Lottery upper bound by the acceptance-rate factor, and state the resulting near-optimality comparison for general k."
+depends_on = []
+verified = ["litcheck"]
+location = "Smoothing_the_Cliff_ITCS.tex (Relation to Closest Work and discussion after prop:flatK)"
+notes = "Direct inspection of arXiv:2605.20069v2, Definition 3.1, Theorems 4.3 and 4.5, Appendices A.2--A.3, and Remark D.4. Ledger: smoothing_cliff_goldberg_intermediate_gap_litcheck_20260824."
+
+[nodes.P_flatK_near_exact]
+fingerprint = "sha256:eca585bb3895"
+kind = "proposition"
+statement = "For K_- = min(K,n-K) and K_+ = max(K,n-K), the unbounded fixed-cardinality full-vector frontier lies between K_- K_+^2/[2 Lambda n(K_++1)] and K_- K_+(n-1)/[2 Lambda n^2]; the bounded cube has the displayed two-regime lower bound; in priority units the analogous endpoints multiply w1^2/(4S) by K_- K_+^2/[n(K_++1)] and K_- K_+(n-1)/n^2; their ratio is 1+(K_--1)/(nK_+), exact at the two capacity endpoints and converging to one for every capacity sequence."
+depends_on = ["A_flatK_smooth_selection", "L_flatK_symmetrization", "L_flatK_adjacent_mass", "L_flatK_adjacent_tv", "L_flatK_adjacent_cap", "L_flatK_complement", "L_flatK_priority_bridge", "L_flatK_unbounded_lower", "L_flatK_cube_lower", "L_flatK_frontier_algebra", "P_budgetwf", "L_goldberg_intermediate_gap"]
+verified = ["lean", "sympy"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:flatK)"
+notes = "Lean 4.30.0 now defines the literal infimum-over-uniform-bounds frontier and proves the unbounded sandwich in flatKScoreFrontier_sandwich; flatKScoreProjection_admissible and flatKScoreProjection_regret_exact provide the feasible projection, uniform upper bound, and attaining profile. The cube frontier is separately defined without out-of-domain extension and its two regimes are proved in flatKCubeFrontier_lower. The priority bridge and eligible reflection are Lean-credentialed; physical rescaling is SymPy-checked. flatK_frontier_ratio and flatK_frontier_ratio_error_le give the exact ratio and an error at most 1/n. Full-file diagnostics, source scans, and the 3576-job build were clean; only standard axioms. Ledger: smoothing_cliff_flatk_literal_frontiers_lean_20260824."
+
+[nodes.A_strict_priority_race_hetero_n]
+kind = "assumption"
+statement = "One slot of weight w1, n eligible bidders with d_i=v_i-r>0, common linear latency cost kappa*a_i, independent Borel mixed strategies, effective scores Z_i=d_i+A_i, strict-win ties, and gross rent w1*min{(Z_i-max_{j!=i}Z_j)^+,d_i}."
+
+[nodes.L_hetero_zero_payoff]
+kind = "lemma"
+statement = "In every equilibrium of the heterogeneous strict-priority race, compact support and lower-effective-score comparison imply that all bidders except possibly the unique bidder with the largest lower effective support earn zero payoff."
+depends_on = ["A_strict_priority_race_hetero_n"]
+location = "Smoothing_the_Cliff_ITCS.tex (proof of prop:sp_floor_hetero, first paragraph)"
+notes = "Natural-language support argument only; no independent verifier or Lean credential."
+
+[nodes.L_hetero_shifted_copy]
+kind = "lemma"
+statement = "Shifting an independent copy of each equilibrium action by d_(n) and summing weak-maximum events gives aggregate gross rent R >= (w1-n*kappa)d_(n)."
+depends_on = ["A_strict_priority_race_hetero_n"]
+location = "Smoothing_the_Cliff_ITCS.tex (proof of prop:sp_floor_hetero, H1)"
+notes = "The deviation and weak-maximum count are printed explicitly. Natural-language equilibrium argument only; no independent verifier or Lean credential."
+
+[nodes.L_hetero_rent_bound_smt]
+fingerprint = "sha256:20937c4cd64a"
+kind = "lemma"
+statement = "For positive d_p>d_j, h<=d_p+w1*d_p/kappa implies kappa*d_p+kappa*h(d_p-d_j)/d_j <= kappa*d_p+(w1+kappa)d_p(d_p-d_j)/d_j; and for d1>=d2>=dn>0, (d1-d2)/d2 <= (d1-dn)/dn."
+depends_on = []
+verified = ["z3", "cvc5"]
+location = "Smoothing_the_Cliff_ITCS.tex (proof of prop:sp_floor_hetero, H3-H4; proof of cor:neartie_region)"
+notes = "Z3 5.0.0 and cvc5 1.3.4 independently found the negations unsatisfiable; verify_smoothing_cliff_neartie_region.py."
+
+[nodes.L_hetero_exceptional_rent]
+kind = "lemma"
+statement = "The sole possible positive equilibrium payoff is at most kappa*d_(1)+(w1+kappa)d_(1)(d_(1)-d_(2))/d_(2)."
+depends_on = ["A_strict_priority_race_hetero_n", "L_hetero_zero_payoff", "L_hetero_rent_bound_smt"]
+location = "Smoothing_the_Cliff_ITCS.tex (proof of prop:sp_floor_hetero, H2-H4)"
+notes = "The upper-support deviation and event containment are printed explicitly. The terminal rational inequality has dual-solver evidence; the equilibrium argument itself has no independent narrative credential."
+
+[nodes.L_hetero_common_floor_identity]
+fingerprint = "sha256:7dc735b95988"
+kind = "lemma"
+statement = "At d_i=G, (w1-n*kappa)G-kappa*G equals [w1-(n+1)kappa]G."
+depends_on = []
+verified = ["sympy"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:sp_floor_hetero, common-value specialization)"
+notes = "Exact SymPy cancellation in verify_smoothing_cliff_neartie_region.py."
+
+[nodes.P_sp_floor_hetero]
+kind = "proposition"
+statement = "The heterogeneous n-bidder one-slot strict-priority race has an independent Borel mixed Nash equilibrium; every such equilibrium has at least n-1 zero-payoff bidders and dissipation at least the positive part of (w1-n*kappa)d_(n) minus the displayed exceptional-rent cap; at common values the floor reduces to the aggregate branch of P_sp_floor_n."
+depends_on = ["A_strict_priority_race_hetero_n", "L_hetero_zero_payoff", "L_hetero_shifted_copy", "L_hetero_exceptional_rent", "L_hetero_common_floor_identity"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:sp_floor_hetero)"
+notes = "Added 2026-08-24. Selection-free but not claimed sharp. The analytic equilibrium proof is new and AI-assisted; no Lean or independent Rethlas credential has been issued."
+
+[nodes.L_budgetwf_local_loss]
+kind = "lemma"
+statement = "At every eligible one-slot profile, order preservation and total mass w1 give the top-value bidder allocation at least w1/n, hence budget-spending water-filling loses at most w1(1-1/n)(v_(1)-v_(n))."
+depends_on = ["L_budgetwf_active_modulus"]
+location = "Smoothing_the_Cliff_ITCS.tex (prop:budgetwf(iii), local bound)"
+notes = "Finite order-and-mass argument printed in the proof; no separate machine credential."
+
+[nodes.L_neartie_quadratic_identity]
+fingerprint = "sha256:4011f43de9c0"
+kind = "lemma"
+statement = "With q=kappa/w1 and t=(d_(1)-d_(n))/d_(1), the normalized coarse dissipation-minus-local-loss margin f satisfies (1-t)f=(2-1/n-nq)t^2-(4-1/n-2nq)t+1-(n+1)q, and the common-value floor specialization is exact."
+depends_on = []
+verified = ["sympy"]
+location = "Smoothing_the_Cliff_ITCS.tex (proof of cor:neartie_region, scalar reduction)"
+notes = "Exact SymPy factorization in verify_smoothing_cliff_neartie_region.py."
+
+[nodes.L_neartie_signs_smt]
+fingerprint = "sha256:7204847e1f2f"
+kind = "lemma"
+statement = "For real n>=2 and 0<q<1/(n+1), the near-tie quadratic has positive constant, leading coefficient, linear-sum coefficient, and discriminant, while its value at one is -(1+q); hence the displayed smaller root lies in (0,1)."
+depends_on = []
+verified = ["z3", "cvc5"]
+location = "Smoothing_the_Cliff_ITCS.tex (proof of cor:neartie_region, root analysis)"
+notes = "Z3 5.0.0 and cvc5 1.3.4 independently found all encoded negations unsatisfiable; verify_smoothing_cliff_neartie_region.py. The endpoint identity is also checked by SymPy in that script."
+
+[nodes.C_neartie_region]
+kind = "corollary"
+statement = "At S_eta=(1-eta)kappa/d_(1), budget-spending one-slot water-filling uniquely shuts down investment and beats every strict-priority equilibrium whenever the heterogeneous dissipation floor exceeds the minimum of its exact global price and local spread loss; q<1/(n+1) and relative spread below rho_n(q) is an explicit sufficient condition."
+depends_on = ["P_budgetwf", "P_sp_floor_hetero", "L_budgetwf_local_loss", "L_neartie_quadratic_identity", "L_neartie_signs_smt", "C_sharp_speed"]
+location = "Smoothing_the_Cliff_ITCS.tex (cor:neartie_region)"
+notes = "Added 2026-08-24. The semialgebraic reduction has SymPy plus independent Z3/cvc5 evidence; the game-theoretic inputs inherit the current standing of P_budgetwf and P_sp_floor_hetero."

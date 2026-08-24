@@ -22,8 +22,27 @@ Manifest schema (TOML):
     kind       = "assumption" | "lemma" | "proposition" | "theorem" | "corollary"
     statement  = "one-line statement"
     depends_on = ["A1", "L2"]          # cited assumptions / lemmas
-    verified   = ["sympy", "z3", "lean", "rethlas", "litcheck"]  # subset; only what actually ran
-                                       # "axle" and "human" remain readable legacy layers
+    verified   = ["exact", "arb", "sympy", "z3", "cvc5", "lean", "rethlas", "litcheck"]
+                                       # subset; only what actually ran.
+                                       # "axle" and "human" remain readable legacy layers.
+                                       #
+                                       # The machine layers differ in what they ask you to
+                                       # trust, which is the reason they are separate names:
+                                       #   exact  a finite certificate re-expanded to zero in
+                                       #          sympy: an SOS or Farkas decomposition, an
+                                       #          exact finite enumeration, a counterexample
+                                       #          replayed exactly. Adds nothing to the
+                                       #          trusted base and any reader can recheck it.
+                                       #   lean   kernel-checked.
+                                       #   arb    a proved interval enclosure. Trusts Arb.
+                                       #          Covers a whole domain, unlike a grid scan,
+                                       #          which is not a credential at all.
+                                       #   sympy  an exact symbolic computation.
+                                       #   z3     a decision by z3 alone.
+                                       #   cvc5   a decision by cvc5 alone. Both names present
+                                       #          means both agreed; one name means one solver
+                                       #          closed it, which is the weaker result and
+                                       #          should look weaker on the page.
     divergent  = ["rethlas"]           # layers that PASSED, but on text that differs from the
                                        # paper. A rethlas credential certifies a blueprint; if
                                        # that blueprint was repaired and the paper was not, the
@@ -42,9 +61,18 @@ import sys
 import tomllib
 from collections import deque
 
-MACHINE = {"sympy", "z3", "lean", "axle"}  # axle: historical credentials only
+MACHINE = {"exact", "arb", "sympy", "z3", "cvc5", "lean", "axle"}  # axle: historical only
 AUDIT = {"rethlas", "litcheck", "human"}   # "human" kept as a legacy alias
-LAYERS = ["sympy", "z3", "lean", "axle", "rethlas", "litcheck", "human"]
+LAYERS = ["exact", "arb", "sympy", "z3", "cvc5", "lean", "axle",
+          "rethlas", "litcheck", "human"]
+
+# Layers whose output a reader can recheck without trusting the tool that
+# produced it. A certificate expands to zero in sympy and the kernel checks a
+# Lean proof, so neither asks the reader to take a solver's word for anything.
+# Everything else in MACHINE does. `audit` reports the difference, because a
+# result that rests on a single solver's unsat is worth flagging even though
+# it is a genuine machine credential.
+SELF_CHECKING = {"exact", "lean"}
 KINDS = {"assumption", "definition", "lemma", "proposition", "theorem", "corollary"}
 
 
@@ -219,7 +247,7 @@ def main():
         target = sys.argv[3]
         anc = ancestors(nodes, target) | {target}
         print(f"{target} rests on {len(anc) - 1} ancestor(s); the target itself is included below:")
-        bare, audited, broken, drift = [], [], [], []
+        bare, audited, broken, drift, single = [], [], [], [], []
         for k in nodes:
             if k in anc:
                 print("  ", fmt(nodes, k))
@@ -229,9 +257,18 @@ def main():
                     continue
                 if n["divergent"]:
                     drift.append(k)           # passed, but not on the paper's own text
-                if n["kind"] in ("assumption", "definition") or set(n["verified"]) & MACHINE:
+                if n["kind"] in ("assumption", "definition"):
                     continue
-                (audited if set(n["verified"]) & AUDIT else bare).append(k)
+                ver = set(n["verified"])
+                if ver & MACHINE:
+                    # A machine credential that no reader can recheck, and that
+                    # rests on exactly one solver, is the weakest of them. Worth
+                    # naming so it can be strengthened cheaply rather than found
+                    # by a referee.
+                    if not (ver & SELF_CHECKING) and len(ver & {"z3", "cvc5"}) == 1:
+                        single.append(k)
+                    continue
+                (audited if ver & AUDIT else bare).append(k)
         if broken:
             print()
             print(f"KNOWN FAILURE on: {', '.join(broken)}  <- a layer rejected this node")
@@ -249,6 +286,12 @@ def main():
             print()
             print(f"AUDIT ONLY, no machine layer, on: {', '.join(audited)}"
                   "  <- must disclose in the paper")
+        if single:
+            print()
+            print(f"ONE SOLVER, NOTHING RECHECKABLE, on: {', '.join(single)}")
+            print("  These rest on a single solver's verdict with no certificate and no")
+            print("  Lean proof behind them. Running the other solver, or turning the")
+            print("  claim into an 'exact' certificate, is usually a few minutes' work.")
         if not bare and not audited and not broken and not drift:
             print()
             print("all non-assumption ancestors carry at least one machine layer")
