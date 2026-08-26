@@ -8,6 +8,9 @@ import SmoothingCliff.Frontier.Extraction
 import SmoothingCliff.Frontier.WaterFilling
 import SmoothingCliff.Frontier.BandDerivative
 import SmoothingCliff.Frontier.FlatKMinimax
+import SmoothingCliff.Frontier.ResponsivenessBudget
+import SmoothingCliff.Frontier.WaterFillingProfileLoss
+import SmoothingCliff.Frontier.BoundedOneSlot
 import SmoothingCliff.Frontier.MeanField
 import SmoothingCliff.Frontier.PopulationProgram
 import SmoothingCliff.Frontier.RationedRamp
@@ -37,6 +40,8 @@ import SmoothingCliff.Mechanism.CrossAgent
 import SmoothingCliff.Mechanism.Monotonicity
 import SmoothingCliff.Mechanism.LuceOptimality
 import SmoothingCliff.Mechanism.LuceOptimalityGeneralK
+import SmoothingCliff.Mechanism.PLWindow
+import SmoothingCliff.Mechanism.LuceClassCertificate
 import SmoothingCliff.Mechanism.Runtime
 import SmoothingCliff.Mechanism.RuntimeAsymptotics
 import SmoothingCliff.Mechanism.Revenue
@@ -74,6 +79,9 @@ import SmoothingCliff.Racing.NextSupport
 import SmoothingCliff.Racing.PositiveProfile
 import SmoothingCliff.Racing.BoundaryFloor
 import SmoothingCliff.Racing.NearTieDominance
+import SmoothingCliff.Racing.HeterogeneousSelectionFreeFloor
+import SmoothingCliff.Racing.HeterogeneousNearTieSelectionFree
+import SmoothingCliff.Racing.ThickMarketDomination
 import SmoothingCliff.Racing.ConcaveGameExistence
 import SmoothingCliff.Racing.RaceEquilibrium
 import SmoothingCliff.Racing.RaceProfileGame
