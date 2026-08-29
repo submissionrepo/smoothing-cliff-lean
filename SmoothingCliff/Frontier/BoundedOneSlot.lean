@@ -875,8 +875,7 @@ bounded premium cube. -/
 def IsBoundedZeroInvestmentRule
     (n : ℕ) (weight kappa diameter : ℝ)
     (x : InterimRule (Fin n) 0) : Prop :=
-  Anonymous x ∧ OwnMonotone x ∧ CrossMonotone x ∧
-    OneSlotFeasible weight x ∧
+  Anonymous x ∧ OwnMonotone x ∧ OneSlotFeasible weight x ∧
     ∃ slice : EligibleProfile (Fin n) 0 → Fin n → ℝ → ℝ,
       (∀ b i, Continuous (slice b i)) ∧
       (∀ b i, slice b i (b i) = x b i) ∧
@@ -886,26 +885,39 @@ def IsBoundedZeroInvestmentRule
         NonnegativeBestResponse
           (advantageUtility (slice b i) (fun a => kappa * a) 0 (b i)) 0
 
-/-- The responsiveness cap localized to the bounded cube used by the
-incentive-defined class. -/
-theorem boundedZeroInvestment_responsiveness
+/-- The own-slice responsiveness range localized to the bounded cube.  It
+does not use cross-monotonicity. -/
+theorem boundedZeroInvestment_range
     (n : ℕ) [NeZero n]
     (weight kappa diameter : ℝ) (x : InterimRule (Fin n) 0)
     (hx : IsBoundedZeroInvestmentRule n weight kappa diameter x)
     (b : EligibleProfile (Fin n) 0) (hb : InBoundedPremiumCube diameter b)
     (i : Fin n) :
-    x b i ≤ weight / (n : ℝ) + kappa := by
-  rcases hx.2.2.2.2 with ⟨slice, hContinuous, hValue, hReserve, hBest⟩
+    x b i - x (updateBid b i ⟨0, Set.mem_Ici.mpr le_rfl⟩) i ≤ kappa := by
+  rcases hx.2.2.2 with ⟨slice, hContinuous, hValue, hReserve, hBest⟩
   have hSpread := zeroBestResponse_allocationSpread_le
     (slice b i) (hContinuous b i) (hBest b hb i)
   rw [hValue b i, hReserve b i] at hSpread
+  exact hSpread
+
+/-- With cross-monotonicity added separately, the range bound yields the
+general-profile allocation cap. -/
+theorem boundedZeroInvestment_responsiveness
+    (n : ℕ) [NeZero n]
+    (weight kappa diameter : ℝ) (x : InterimRule (Fin n) 0)
+    (hx : IsBoundedZeroInvestmentRule n weight kappa diameter x)
+    (hCross : CrossMonotone x)
+    (b : EligibleProfile (Fin n) 0) (hb : InBoundedPremiumCube diameter b)
+    (i : Fin n) :
+    x b i ≤ weight / (n : ℝ) + kappa := by
+  have hSpread := boundedZeroInvestment_range n weight kappa diameter x hx b hb i
   have hCrossBase :
       x (updateBid b i ⟨0, Set.mem_Ici.mpr le_rfl⟩) i ≤
         x (tiedEligibleProfile 0) i := by
     rw [← opponentsRaisedProfile_univ_erase b i]
-    exact opponentsRaisedProfile_allocation_le_tie x hx.2.2.1 b i
+    exact opponentsRaisedProfile_allocation_le_tie x hCross b i
       ((Finset.univ : Finset (Fin n)).erase i) (by simp)
-  have hTie := anonymous_tie_allocation_le_card x hx.1 hx.2.2.2.1 i
+  have hTie := anonymous_tie_allocation_le_card x hx.1 hx.2.2.1 i
   simp only [Fintype.card_fin] at hTie
   linarith
 
@@ -1028,8 +1040,8 @@ theorem budgetSpentOneSlotRule_zeroInvestment
     (ι := Fin n) (reserve := (0 : ℝ))
       (weight := weight) (sensitivity := budgetSpentSensitivity n certificate)
       (budgetSpentSensitivity_pos n hn certificate hcertificate)
-  refine ⟨hMembership.1, hMembership.2.1, hMembership.2.2.2.1,
-    hMembership.2.2.2.2.1, slice, ?_, ?_, ?_, ?_⟩
+  refine ⟨hMembership.1, hMembership.2.1, hMembership.2.2.2.2.1,
+    slice, ?_, ?_, ?_, ?_⟩
   · intro b i
     exact (budgetSpentOneSlotSlice_lipschitz n hn weight certificate
       hcertificate b i).continuous
@@ -1114,8 +1126,20 @@ theorem zeroInvestment_uniform_lower
   let b := oneLeaderPremiumProfile n diameter hdiameter
   have hb : InBoundedPremiumCube diameter b :=
     oneLeaderPremiumProfile_mem_cube n diameter diameter hdiameter le_rfl
-  have hAllocation := boundedZeroInvestment_responsiveness n
+  have hSpread := boundedZeroInvestment_range n
     weight kappa diameter x hx b hb 0
+  have hReset :
+      updateBid b 0 ⟨0, Set.mem_Ici.mpr le_rfl⟩ =
+        tiedEligibleProfile 0 := by
+    funext i
+    by_cases hi : i = 0 <;>
+      simp [b, oneLeaderPremiumProfile, updateBid, Function.update,
+        tiedEligibleProfile, hi]
+  rw [hReset] at hSpread
+  have hTie := anonymous_tie_allocation_le_card x hx.1 hx.2.2.1 0
+  simp only [Fintype.card_fin] at hTie
+  have hAllocation : x b 0 ≤ weight / (n : ℝ) + kappa := by
+    linarith
   have hScaled := mul_le_mul_of_nonneg_left hAllocation hdiameter
   have hRegret := hR b hb
   have hTop := oneLeaderPremiumProfile_topScore n (by omega)
@@ -1143,7 +1167,7 @@ theorem cheapLatencyFrontier_exact
     (weight kappa diameter : NNReal)
     (hweight : 0 < weight) (hkappa : 0 < kappa)
     (hdiameter : 0 < diameter)
-    (hCheap : 2 * (kappa : ℝ) <
+    (hCheap : 2 * (kappa : ℝ) ≤
       (weight : ℝ) * (1 - 1 / (n : ℝ))) :
     let certificate : NNReal := kappa / diameter
     zeroInvestmentFrontier n (by omega) (weight : ℝ) (kappa : ℝ)
@@ -1173,18 +1197,51 @@ theorem cheapLatencyFrontier_exact
     apply budgetSpentOneSlotRule_zeroInvestment n hn weight certificate
       hcertificate (kappa : ℝ) (diameter : ℝ)
     exact hCertificateDiameter.le
-  have hBranch :
-      2 * (certificate : ℝ) * (diameter : ℝ) <
-        (weight : ℝ) * (1 - 1 / (n : ℝ)) := by
-    rw [mul_assoc, hCertificateDiameter]
-    exact hCheap
   have hPriceIdentity :
       boundedOneSlotPrice n (weight : ℝ) (certificate : ℝ) (diameter : ℝ) =
         price := by
-    rw [boundedOneSlotPrice, if_pos hBranch]
-    dsimp [price, cheapLatencyPrice]
-    rw [← hCertificateDiameter]
-    ring
+    by_cases hBranch :
+        2 * (certificate : ℝ) * (diameter : ℝ) <
+          (weight : ℝ) * (1 - 1 / (n : ℝ))
+    · rw [boundedOneSlotPrice, if_pos hBranch]
+      dsimp [price, cheapLatencyPrice]
+      rw [← hCertificateDiameter]
+      ring
+    · have hWeak :
+          2 * (certificate : ℝ) * (diameter : ℝ) ≤
+            (weight : ℝ) * (1 - 1 / (n : ℝ)) := by
+        rw [mul_assoc, hCertificateDiameter]
+        exact hCheap
+      have hBoundary :
+          2 * (certificate : ℝ) * (diameter : ℝ) =
+            (weight : ℝ) * (1 - 1 / (n : ℝ)) :=
+        le_antisymm hWeak (le_of_not_gt hBranch)
+      have hCertificateReal : (0 : ℝ) < (certificate : ℝ) := by
+        exact_mod_cast hcertificate
+      rw [boundedOneSlotPrice, if_neg hBranch]
+      dsimp [price, cheapLatencyPrice]
+      rw [← hCertificateDiameter]
+      calc
+        (1 - 1 / (n : ℝ)) ^ 2 * (weight : ℝ) ^ 2 /
+              (4 * (certificate : ℝ)) =
+            ((weight : ℝ) * (1 - 1 / (n : ℝ))) ^ 2 /
+              (4 * (certificate : ℝ)) := by ring
+        _ = (2 * (certificate : ℝ) * (diameter : ℝ)) ^ 2 /
+              (4 * (certificate : ℝ)) := by rw [← hBoundary]
+        _ = (certificate : ℝ) * (diameter : ℝ) ^ 2 := by
+          field_simp [ne_of_gt hCertificateReal]
+          ring
+        _ = (diameter : ℝ) *
+              ((weight : ℝ) * (1 - 1 / (n : ℝ))) -
+                (certificate : ℝ) * (diameter : ℝ) ^ 2 := by
+          rw [← hBoundary]
+          ring
+        _ = (weight : ℝ) * (diameter : ℝ) *
+              (1 - 1 / (n : ℝ)) -
+                (certificate : ℝ) * (diameter : ℝ) ^ 2 := by ring
+        _ = (weight : ℝ) * (diameter : ℝ) *
+              (1 - 1 / (n : ℝ)) -
+                (certificate : ℝ) * (diameter : ℝ) * (diameter : ℝ) := by ring
   have hCertified := budgetSpentOneSlotRule_certificate n hn weight certificate
     hweight hcertificate (diameter : ℝ)
   have hRegret : HasBoundedOneSlotRegretBound n (by omega)
@@ -1216,7 +1273,7 @@ theorem cheapLatency_strictSlack_rule
     (hweight : 0 < weight) (hkappa : 0 < kappa)
     (hdiameter : 0 < diameter) (hretention0 : 0 < retention)
     (hretention1 : retention < 1)
-    (hCheap : 2 * (kappa : ℝ) <
+    (hCheap : 2 * (kappa : ℝ) ≤
       (weight : ℝ) * (1 - 1 / (n : ℝ))) :
     let certificate : NNReal := retention * (kappa / diameter)
     let rule := budgetSpentOneSlotRule n hn weight certificate

@@ -9,12 +9,12 @@ certificate behind the three-bidder proposition (`n3_witness/`).
 
 ## What we checked
 
-The development contains 127 Lean source files and 1,814 theorem or lemma
+The development contains 127 Lean source files and 1,816 theorem or lemma
 declarations under `SmoothingCliff/`. A clean build completes 8,655 jobs with
 no errors. The sources contain no `sorry` and no custom axiom; every
 credentialed statement rests only on Lean's standard foundational axioms
-`propext`, `Classical.choice`, and `Quot.sound`. The manifest has 169
-non-assumption nodes, of which 119 carry a Lean credential. Five of the six
+`propext`, `Classical.choice`, and `Quot.sound`. The manifest has 170
+non-assumption nodes, of which 120 carry a Lean credential. Five of the six
 theorem nodes are among them.
 
 The manifest records the remaining 50 nodes statement by statement. The
@@ -43,9 +43,9 @@ statement or premise set has changed.
 
 The manifest is a directed graph. One vertex represents each paper statement,
 and an edge from *P* to *Q* records that the paper's proof of *Q* uses *P*. At
-this revision it has 185 vertices and 329 edges: 16 assumptions, 112 lemmas,
-41 propositions, 6 theorems, and 10 corollaries. Forty-six vertices are
-sources and 48 are sinks. The graph is acyclic, and a manifest containing a
+this revision it has 188 vertices and 333 edges: 18 assumptions, 112 lemmas,
+42 propositions, 6 theorems, and 10 corollaries. Forty-eight vertices are
+sources and 49 are sinks. The graph is acyclic, and a manifest containing a
 cycle fails to load.
 
 A credential is issued against a vertex together with its in-edges. We
@@ -91,7 +91,7 @@ graph BT
 **The two reachability queries.** Downstream, `blast <node>` returns the
 descendant closure: what else falls if this statement falls. The assumptions
 run large here. `A_pl_process`, the exponential-race process itself, reaches
-41 of the 185 vertices. Upstream, `audit <node>` returns the ancestor closure
+41 of the 188 vertices. Upstream, `audit <node>` returns the ancestor closure
 together with the credential state of every vertex in it, so we can see
 whether the paper's route to a theorem passes through anything uncertified.
 The longest chain in the graph runs 10 edges, from `A_pl_process` through the
@@ -111,7 +111,7 @@ into one would lose that signal.
 
 Degrees carry a different kind of information. The checker's `status` report
 flags vertices with no descendants and four or more ancestors as costly but
-load-bearing for nothing. The current graph has 22 such vertices. This is a
+load-bearing for nothing. The current graph has 23 such vertices. This is a
 proportionality diagnostic, not a correctness test: a sound corollary can rest
 on a deep chain and support no later result.
 
@@ -121,7 +121,7 @@ The artifact uses three verification layers, matched to the claim type.
 
 **Deductive claims, which we checked in Lean.** Theorems, propositions,
 lemmas and the mathematical content of remarks assert implications from
-stated premises. Five of the six theorems and 119 of the 169 non-assumption
+stated premises. Five of the six theorems and 120 of the 170 non-assumption
 statements tracked in the manifest are certified this way.
 
 **Finite computations, which we checked in exact arithmetic.**
@@ -210,7 +210,7 @@ contains the full statement-by-statement correspondence and premise graph.
 | `thm:thick-market-domination` | order-statistic, sharp loss-rate, integrated-floor, and induced-dissipation-function clauses: `expectedRunnerUp_tendsto_endpoint`, `eventually_sqrt_marketSize_mul_expectedWaterFillingLoss_le_sharp`, `expectedHeterogeneousWindowRawFloor_tendsto_endpoint`, `eventually_thickMarket_netSurplusGain_pos`; strategy-valued selector interface outside Lean | `Racing/ThickMarketOrderStatistics.lean`, `Racing/ThickMarketWaterFillingLoss.lean`, `Racing/ThickMarketDomination.lean` |
 | `prop:frontier2` | `twoBidder_frontier` | `Frontier/TwoBidder.lean` |
 | `prop:squeeze` | `ranked_squeeze_bounds` | `Frontier/Squeeze.lean` |
-| `prop:responsiveness-budget` | `noRace_responsiveness_budget` | `Frontier/ResponsivenessBudget.lean` |
+| `prop:responsiveness-budget` | `noRace_responsiveness_range` for the premise-minimal own-slice bound; `noRace_responsiveness_budget` for the cross-monotone general-profile cap | `Frontier/ResponsivenessBudget.lean` |
 | `prop:sharpcertificate` | `uniformCertificateCoefficients_eq` | `Racing/SharpCertificate.lean` |
 | `lem:spread` | `marginalValue_and_spread_bounds`, with the PL specialization in `plMarginalValue_and_spread_bounds` | `Racing/Spread.lean` |
 | `prop:threebidders` | exact-arithmetic checker, outside Lean | `n3_witness/` |
@@ -230,7 +230,7 @@ contains the full statement-by-statement correspondence and premise graph.
 | `prop:flatK-sharp` | exact and SymPy certificates plus a sequential-proof audit; no Lean declaration | manifest nodes `L_flatK_six_orbit`, `L_flatK_rankgap_upper`, `L_flatK_ratio_40_39`, `P_flatK_40_39` |
 | `cor:ir` | `globalReservePayment_interimIR` | `Mechanism/Payments.lean` |
 | `cor:tight-K1` | `oneSlotLuceAllocation_lipschitz_eligible` | `Mechanism/OneSlotStability.lean` |
-| `cor:cheap-latency-price` | `cheapLatencyFrontier_exact`, `cheapLatency_strictSlack_rule` | `Frontier/BoundedOneSlot.lean` |
+| `cor:cheap-latency-price` | `cheapLatencyFrontier_exact` over the class without cross-monotonicity, including the equality boundary; `cheapLatency_strictSlack_rule` | `Frontier/BoundedOneSlot.lean` |
 | `cor:neartie_n` | common-value general-*n* equilibrium floor outside Lean; certificate and water-filling components credentialed separately | manifest node `C_neartie_n` |
 | `cor:neartie_region` | `heterogeneousNash_nearTieDominance_active`, `heterogeneousNash_nearTieDominance_capped` | `Racing/HeterogeneousNearTieSelectionFree.lean` |
 | `cor:pl-window-general-n` | `oneSlotPL_global_window_budget_at_tauCircle`, with centered-window attainment | `Mechanism/PLWindow.lean` |

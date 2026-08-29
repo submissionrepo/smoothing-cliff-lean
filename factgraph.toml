@@ -274,18 +274,35 @@ depends_on = ["P_sharp_certificate", "L_spread_generic"]
 location = "Smoothing_the_Cliff_ITCS.tex (unnumbered interpretation following prop:sharpcertificate)"
 notes = "The allocation-window equivalence is Lean-credentialed by L_sharp_window_telescoping and the generic utility derivative by L_spread_generic. The final common-supremum wrapper inherits the scope note on P_sharp_certificate; no node-level Lean tag is claimed."
 
-[nodes.A_no_race_responsiveness]
+[nodes.A_no_race_own_slice]
 kind = "assumption"
-statement = "There is one slot of weight w1; additive bid-equivalent latency advantage enters the allocation input; latency cost is kappa times advantage; every eligible own-input allocation slice is continuous on the effective-input domain; and the allocation rule is anonymous, cross-monotone, feasible, and truthful in expectation."
+statement = "There is one slot of weight w1; additive bid-equivalent latency advantage enters the allocation input; latency cost is kappa times advantage; every eligible own-input allocation slice is continuous on the effective-input domain; and the allocation rule is truthful in expectation."
+
+[nodes.A_no_race_general_cap]
+kind = "assumption"
+statement = "The one-slot allocation rule is anonymous and feasible, and each bidder's allocation is non-increasing in every opponent bid."
+
+[nodes.A_no_race_exact_class]
+kind = "assumption"
+statement = "On the premium cube [0,dbar]^n, the one-slot rule is anonymous, truthful, feasible, boundary regular, and makes zero investment an equilibrium at every profile; neither cross-monotonicity nor a Lipschitz cap is imposed."
+
+[nodes.P_responsiveness_range]
+fingerprint = "sha256:059877448818"
+kind = "proposition"
+statement = "For a truthful one-slot rule with continuous own-input allocation slices, if zero latency investment is a Nash equilibrium at every eligible value profile, then every bidder's allocation gain from raising her truthful value from the reserve is at most kappa, without anonymity, feasibility, or cross-monotonicity."
+depends_on = ["A_no_race_own_slice", "L_spread_generic"]
+verified = ["lean"]
+location = "Smoothing_the_Cliff_ITCS.tex (first display of prop:responsiveness-budget and its appendix proof)"
+notes = "Lean 4.30.0: SmoothingCliff.Frontier.noRace_responsiveness_range isolates the boundary best-response argument and proves the own-slice allocation range without anonymity, feasibility, or cross-monotonicity. Full-file diagnostics and source scan were clean; only standard axioms. Ledger: smoothing_cliff_responsiveness_split_lean_20260829."
 
 [nodes.P_responsiveness_budget]
-fingerprint = "sha256:9aef175c55af"
+fingerprint = "sha256:d1f08580741d"
 kind = "proposition"
-statement = "For an anonymous, cross-monotone, truthful, feasible one-slot rule with continuous own-input allocation slices, if zero latency investment is a Nash equilibrium at every eligible value profile, then every bidder's allocation gain from raising her truthful value from the reserve is at most kappa; consequently every eligible allocation is at most w1/n+kappa."
-depends_on = ["A_no_race_responsiveness", "L_spread_generic"]
+statement = "Adding anonymity, feasibility, and cross-monotonicity to the own-slice no-race budget implies the general-profile allocation cap x_i(v)<=w1/n+kappa."
+depends_on = ["P_responsiveness_range", "A_no_race_general_cap"]
 verified = ["lean"]
 location = "Smoothing_the_Cliff_ITCS.tex (prop:responsiveness-budget)"
-notes = "Lean 4.30.0: SmoothingCliff.Frontier.noRace_responsiveness_budget formalizes the full chain from the boundary best-response condition through the allocation-spread bound, opponents-raised comparison, anonymous tie, and feasibility. This is a necessary range bound, not an equivalence with a Lipschitz certificate. Full-file diagnostics and source scans were clean; only standard axioms. Ledger: smoothing_cliff_responsiveness_budget_lean_20260826."
+notes = "Lean 4.30.0: SmoothingCliff.Frontier.noRace_responsiveness_budget composes the premise-minimal range theorem with the cross-monotone comparison to the all-reserve profile and the anonymous feasibility bound. Full-file diagnostics and source scan were clean; only standard axioms. Ledger: smoothing_cliff_responsiveness_split_lean_20260829."
 
 [nodes.L_welfareloss_one_slot]
 fingerprint = "sha256:ef2e4e7690c7"
@@ -1215,13 +1232,13 @@ location = "Smoothing_the_Cliff_ITCS.tex (proofs of prop:bounded-one-slot and co
 notes = "Exact cancellation in verify_smoothing_cliff_new_mainline.py. Ledger: smoothing_cliff_bounded_frontier_scalar_sympy_20260825. Scope is scalar algebra only."
 
 [nodes.C_cheap_latency_price]
-fingerprint = "sha256:34cb4da49836"
+fingerprint = "sha256:9083185a080d"
 kind = "corollary"
-statement = "When 2*kappa/w1<1-1/n, the exact worst-case allocation-value price of making zero investment an equilibrium over all anonymous cross-monotone truthful feasible one-slot rules with continuous own-input allocation slices is w1*dbar*(1-1/n-kappa/w1); water-filling with modulus kappa/dbar attains it, and shrinking the modulus by 1-eta gives strict zero-investment implementation with the corresponding arbitrarily close price."
-depends_on = ["P_responsiveness_budget", "P_bounded_one_slot_frontier", "P_budgetwf"]
+statement = "When 2*kappa/w1<=1-1/n, the exact worst-case allocation-value price of making zero investment an equilibrium over all anonymous truthful feasible one-slot rules with continuous own-input allocation slices, without cross-monotonicity or a Lipschitz cap, is w1*dbar*(1-1/n-kappa/w1); restricting to the Lipschitz subclass leaves this value unchanged, and shrinking the water-filling modulus by 1-eta gives strict zero-investment implementation with the corresponding arbitrarily close price."
+depends_on = ["A_no_race_exact_class", "P_responsiveness_range", "P_bounded_one_slot_frontier", "P_budgetwf", "L_bounded_frontier_scalar"]
 verified = ["lean"]
 location = "Smoothing_the_Cliff_ITCS.tex (cor:cheap-latency-price)"
-notes = "Lean 4.30.0: SmoothingCliff.Frontier.cheapLatencyFrontier_exact proves literal sInf equality over the incentive-defined class, whose definition imposes no Lipschitz restriction, and supplies the attaining water-filling rule. cheapLatency_strictSlack_rule proves every positive action strictly worse under slack and supplies an endpoint profile attaining the corresponding exact loss. Full-file diagnostics and source scans were clean; only standard axioms. Ledger: smoothing_cliff_cheap_latency_price_lean_20260826."
+notes = "Lean 4.30.0: IsBoundedZeroInvestmentRule omits cross-monotonicity and any Lipschitz cap; zeroInvestment_uniform_lower uses only the all-reserve profile and the own-slice range theorem; cheapLatencyFrontier_exact proves literal sInf equality for the weak boundary 2*kappa/w1<=1-1/n, including equality of the two bounded branches; cheapLatency_strictSlack_rule supplies the smooth strict witness. Full-file diagnostics and source scans were clean; only standard axioms. Ledger: smoothing_cliff_cheap_latency_enlarged_class_lean_20260829."
 
 [nodes.L_budgetwf_active_loss_identity]
 fingerprint = "sha256:a4d64fa5a28b"

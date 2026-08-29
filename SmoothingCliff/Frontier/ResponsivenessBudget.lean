@@ -151,9 +151,34 @@ theorem zeroBestResponse_allocationSpread_le
     hBest.2.localize hDerivative.hasDerivWithinAt
   simpa using hNonpos
 
-/-- Proposition `prop:responsiveness-budget`.  The family `slice b i`
-represents bidder `i`'s allocation as her effective input varies while the
-opponents in `b` are fixed. -/
+/-- The own-slice part of Proposition `prop:responsiveness-budget`.  The
+family `slice b i` represents bidder `i`'s allocation as her effective input
+varies while the opponents in `b` are fixed.  This range bound uses neither
+anonymity, feasibility, nor cross-monotonicity. -/
+theorem noRace_responsiveness_range
+    {ι : Type*} [Fintype ι] [DecidableEq ι] [Nonempty ι]
+    {reserve kappa : ℝ}
+    (x : InterimRule ι reserve)
+    (slice : EligibleProfile ι reserve → ι → ℝ → ℝ)
+    (hSliceContinuous : ∀ b i, Continuous (slice b i))
+    (hSliceValue : ∀ b i, slice b i (b i) = x b i)
+    (hSliceReserve : ∀ b i,
+      slice b i reserve =
+        x (updateBid b i ⟨reserve, Set.mem_Ici.mpr le_rfl⟩) i)
+    (hZeroBest : ∀ b i, NonnegativeBestResponse
+      (advantageUtility (slice b i) (fun a => kappa * a)
+        reserve (b i)) 0) :
+    ∀ b i,
+      x b i -
+        x (updateBid b i ⟨reserve, Set.mem_Ici.mpr le_rfl⟩) i ≤ kappa := by
+  intro b i
+  have hSpread := zeroBestResponse_allocationSpread_le
+    (slice b i) (hSliceContinuous b i) (hZeroBest b i)
+  simpa [hSliceValue b i, hSliceReserve b i] using hSpread
+
+/-- The general-profile cap in Proposition `prop:responsiveness-budget`.
+Cross-monotonicity is used only in this second step, to compare the reset
+profile with the all-reserve profile. -/
 theorem noRace_responsiveness_budget
     {ι : Type*} [Fintype ι] [DecidableEq ι] [Nonempty ι]
     {reserve weight kappa : ℝ}
@@ -174,9 +199,8 @@ theorem noRace_responsiveness_budget
           x (updateBid b i ⟨reserve, Set.mem_Ici.mpr le_rfl⟩) i ≤ kappa ∧
       x b i ≤ weight / (Fintype.card ι : ℝ) + kappa := by
   intro b i
-  have hSpread := zeroBestResponse_allocationSpread_le
-    (slice b i) (hSliceContinuous b i) (hZeroBest b i)
-  rw [hSliceValue b i, hSliceReserve b i] at hSpread
+  have hSpread := noRace_responsiveness_range x slice hSliceContinuous
+    hSliceValue hSliceReserve hZeroBest b i
   have hCrossBase :
       x (updateBid b i ⟨reserve, Set.mem_Ici.mpr le_rfl⟩) i ≤
         x (tiedEligibleProfile reserve) i := by
